@@ -1,6 +1,6 @@
 //! Themed single-line text input.
 
-use egui::{Margin, Response, Stroke, StrokeKind, TextEdit, TextStyle, Ui, Vec2, Widget, WidgetText};
+use egui::{Align2, Margin, Response, Stroke, StrokeKind, TextEdit, TextStyle, Ui, Vec2, Widget, WidgetText};
 
 use crate::theme;
 use crate::util::radius;
@@ -62,10 +62,16 @@ impl Widget for TextInput<'_> {
         let p = &theme.palette;
         let m = &theme.metrics;
 
+        // The TextEdit draws the themed frame itself. Wrapping it in an outer
+        // Frame doubled up the height: egui's theme gives TextEdit a minimum
+        // height of `interact_size.y`, and the outer padding was added on top
+        // (46 px instead of 32), with the text stuck to the top.
+        // Note: `TextEdit::margin` is ignored when a custom frame is given, so
+        // the horizontal padding lives in the frame (the stroke sits inside it).
         let frame = egui::Frame {
             inner_margin: Margin::symmetric(
-                (m.spacing_unit * 2.5) as i8,
-                (m.spacing_unit * 1.5) as i8,
+                (m.spacing_unit * 2.5 - m.border_width) as i8,
+                0,
             ),
             fill: p.field_bg,
             stroke: Stroke::new(m.border_width, p.border),
@@ -74,10 +80,11 @@ impl Widget for TextInput<'_> {
         };
 
         let mut edit = TextEdit::singleline(self.text)
-            .frame(egui::Frame::new())
+            .frame(frame)
+            .min_size(Vec2::new(0.0, m.control_height_md))
+            .align(Align2::LEFT_CENTER)
             .font(TextStyle::Body)
             .desired_width(f32::INFINITY)
-            .margin(Vec2::ZERO)
             .password(self.password);
         if let Some(placeholder) = self.placeholder {
             edit = edit.hint_text(placeholder);
@@ -86,18 +93,18 @@ impl Widget for TextInput<'_> {
             edit = edit.id_salt(salt);
         }
 
-        let inner = frame.show(ui, |ui| edit.ui(ui));
+        let response = edit.ui(ui);
 
-        // Focus ring, painted over the frame border (outside the text area).
-        if inner.inner.has_focus() {
+        // Focus ring, painted over the frame border.
+        if response.has_focus() {
             ui.painter().rect_stroke(
-                inner.response.rect,
+                response.rect,
                 radius(m.radius_md),
                 Stroke::new(1.5, p.accent),
                 StrokeKind::Inside,
             );
         }
 
-        inner.inner
+        response
     }
 }

@@ -144,9 +144,12 @@ impl Widget for Slider<'_> {
             ui.allocate_exact_size(vec2(ui.available_width(), height), Sense::click_and_drag());
 
         // Sub-rects: [label] [track .......] [value]
-        let track_w = (rect.width() - label_w - value_w).max(knob_r * 2.0);
+        // The track is inset by the largest knob radius (hovered + pressed)
+        // so the knob never overlaps the label or the value readout.
+        let knob_room = knob_r + 2.5;
+        let track_w = (rect.width() - label_w - value_w - 2.0 * knob_room).max(knob_r * 2.0);
         let track = Rect::from_center_size(
-            pos2(rect.left() + label_w + track_w / 2.0, rect.center().y),
+            pos2(rect.left() + label_w + knob_room + track_w / 2.0, rect.center().y),
             vec2(track_w, track_h),
         );
 

@@ -46,11 +46,16 @@ mod style;
 mod util;
 
 pub mod fonts;
+pub mod icons;
 pub mod theme;
 pub mod widgets;
 
 pub use theme::{Metrics, Palette, Theme, Typography};
-pub use widgets::{Button, ButtonVariant, Oxida, Size, Slider, TextInput, Toggle};
+pub use widgets::{
+    Alert, AlertVariant, Avatar, AvatarStatus, Badge, BadgeVariant, Button, ButtonVariant, Card,
+    Checkbox, DropdownMenu, DropdownMenuUi, IconButton, Oxida, ProgressBar, Radio, Select,
+    SelectItem, Separator, SeparatorDirection, Size, Slider, Spinner, Tabs, TextInput, Toggle,
+};
 
 /// Extension trait that adds the `oxida()` builder entry point to [`egui::Ui`].
 ///
@@ -87,8 +92,13 @@ pub fn init(ctx: &egui::Context, theme: &Theme) {
 /// Also re-exports [`egui::Widget`] so that builder widgets can be finished
 /// with `.ui(ui)` after importing the prelude.
 pub mod prelude {
+    pub use crate::icons;
     pub use crate::theme::{Metrics, Palette, Theme, Typography};
-    pub use crate::widgets::{Button, ButtonVariant, Oxida, Size, Slider, TextInput, Toggle};
+    pub use crate::widgets::{
+        Alert, AlertVariant, Avatar, AvatarStatus, Badge, BadgeVariant, Button, ButtonVariant, Card,
+        Checkbox, DropdownMenu, DropdownMenuUi, IconButton, Oxida, ProgressBar, Radio, Select,
+        SelectItem, Separator, SeparatorDirection, Size, Slider, Spinner, Tabs, TextInput, Toggle,
+    };
     pub use crate::{init, OxidaUi};
     pub use egui::Widget;
 }

@@ -24,17 +24,22 @@ pub struct Typography {
     /// Defaults to the bundled Inter SemiBold
     /// ([`crate::fonts::SEMI_BOLD`]).
     pub heading_family: egui::FontFamily,
+    /// Font family used for [`TextStyle::Button`] and every button label.
+    ///
+    /// Defaults to the proportional font (Inter Regular).
+    pub button_family: egui::FontFamily,
 }
 
 impl Default for Typography {
     fn default() -> Self {
         Self {
-            xs: 11.0,
-            sm: 12.0,
-            md: 13.0,
-            lg: 16.0,
-            title: 20.0,
+            xs: 12.0,
+            sm: 13.0,
+            md: 14.0,
+            lg: 24.0,
+            title: 28.0,
             heading_family: egui::FontFamily::Name(crate::fonts::SEMI_BOLD.into()),
+            button_family: egui::FontFamily::Name(crate::fonts::MEDIUM.into()),
         }
     }
 }
@@ -45,9 +50,19 @@ impl Typography {
         let px = match size {
             crate::widgets::Size::Sm => self.xs,
             crate::widgets::Size::Md => self.md,
-            crate::widgets::Size::Lg => self.lg,
+            crate::widgets::Size::Lg => (self.lg - 6.0).max(self.md),
         };
         FontId::new(px, FontFamily::Proportional)
+    }
+
+    /// Font for page and window titles.
+    pub fn title_font(&self) -> FontId {
+        FontId::new(self.title, egui::FontFamily::Name(crate::fonts::BOLD.into()))
+    }
+
+    /// Font for section titles.
+    pub fn heading_font(&self) -> FontId {
+        FontId::new(self.lg, self.heading_family.clone())
     }
 
     /// Map the sizes onto egui's built-in [`TextStyle`] roles.
@@ -55,7 +70,7 @@ impl Typography {
         [
             (TextStyle::Small, FontId::new(self.xs, FontFamily::Proportional)),
             (TextStyle::Body, FontId::new(self.md, FontFamily::Proportional)),
-            (TextStyle::Button, FontId::new(self.md, FontFamily::Proportional)),
+            (TextStyle::Button, FontId::new(self.md, self.button_family.clone())),
             (
                 TextStyle::Heading,
                 FontId::new(self.lg, self.heading_family.clone()),

@@ -1,12 +1,36 @@
 //! The Oxida widget set and the `ui.oxida()` builder entry point.
 
+mod alert;
+mod avatar;
+mod badge;
 mod button;
+mod card;
+mod checkbox;
+mod dropdown;
+mod icon_button;
+mod progress;
+mod radio;
+mod select;
+mod separator;
 mod slider;
+mod tabs;
 mod text_input;
 mod toggle;
 
+pub use alert::{Alert, AlertVariant};
+pub use avatar::{Avatar, AvatarStatus};
+pub use badge::{Badge, BadgeVariant};
 pub use button::{Button, ButtonVariant};
+pub use card::Card;
+pub use checkbox::Checkbox;
+pub use dropdown::{DropdownMenu, DropdownMenuUi};
+pub use icon_button::IconButton;
+pub use progress::{ProgressBar, Spinner};
+pub use radio::Radio;
+pub use select::{Select, SelectItem};
+pub use separator::{Separator, SeparatorDirection};
 pub use slider::Slider;
+pub use tabs::Tabs;
 pub use text_input::TextInput;
 pub use toggle::Toggle;
 
@@ -64,6 +88,16 @@ impl<'a> Oxida<'a> {
         Button::new(label).variant(ButtonVariant::Danger).ui(self.ui)
     }
 
+    /// Icon button builder (defaults to [`ButtonVariant::Ghost`]).
+    pub fn icon_button(self, icon: impl Into<WidgetText>) -> IconButton {
+        IconButton::new(icon)
+    }
+
+    /// Ghost icon button rendered immediately.
+    pub fn ghost_icon(self, icon: impl Into<WidgetText>) -> Response {
+        IconButton::ghost(icon).ui(self.ui)
+    }
+
     /// Themed single-line text input bound to `text`.
     pub fn text_input<'t>(self, text: &'t mut String) -> TextInput<'t> {
         TextInput::new(text)
@@ -77,5 +111,64 @@ impl<'a> Oxida<'a> {
     /// Themed on/off switch bound to `value`.
     pub fn toggle<'v>(self, value: &'v mut bool) -> Toggle<'v> {
         Toggle::new(value)
+    }
+
+    /// Themed Checkbox styled after shadcn/ui.
+    pub fn checkbox<'v>(self, checked: &'v mut bool, label: impl Into<WidgetText>) -> Checkbox<'v> {
+        Checkbox::new(checked).label(label)
+    }
+
+    /// Themed Radio button styled after shadcn/ui.
+    pub fn radio<'v, T: PartialEq + 'static>(
+        self,
+        current_value: &'v mut T,
+        selected_value: T,
+        label: impl Into<WidgetText>,
+    ) -> Radio<'v, T> {
+        Radio::new(current_value, selected_value).label(label)
+    }
+
+    /// Themed Select dropdown styled after shadcn/ui.
+    pub fn select<'v, T: Clone + PartialEq + 'static>(
+        self,
+        id_salt: impl std::hash::Hash + std::fmt::Debug,
+        selected: &'v mut T,
+    ) -> Select<'v, T> {
+        Select::new(id_salt, selected)
+    }
+
+    /// Themed Dropdown Menu styled after shadcn/ui.
+    pub fn dropdown_menu<R>(
+        self,
+        id_salt: impl std::hash::Hash + std::fmt::Debug,
+        trigger_label: impl Into<WidgetText>,
+        content: impl FnOnce(&mut DropdownMenuUi<'_>) -> R + 'a,
+    ) -> Option<R> {
+        DropdownMenu::new(id_salt, trigger_label, content).show(self.ui)
+    }
+
+    /// Themed badge / tag chip.
+    pub fn badge(self, text: impl Into<WidgetText>) -> Response {
+        Badge::new(text).ui(self.ui)
+    }
+
+    /// Themed horizontal separator / divider.
+    pub fn separator(self) -> Response {
+        Separator::horizontal().ui(self.ui)
+    }
+
+    /// Themed progress bar.
+    pub fn progress_bar(self, progress: f32) -> Response {
+        ProgressBar::new(progress).ui(self.ui)
+    }
+
+    /// Themed indeterminate loading spinner.
+    pub fn spinner(self) -> Response {
+        Spinner::new().ui(self.ui)
+    }
+
+    /// Themed user avatar with initials.
+    pub fn avatar(self, name: &str) -> Response {
+        Avatar::initials(name).ui(self.ui)
     }
 }

@@ -33,6 +33,14 @@ pub(crate) fn to_egui_style(theme: &Theme) -> Style {
     };
 
     visuals.dark_mode = theme.dark_mode;
+
+    // Text rasterization: hinting keeps baselines/x-height on the pixel grid,
+    // and sub-pixel binning keeps each glyph at its true fractional position.
+    // Turning binning off snaps every glyph to whole pixels, which produces
+    // uneven letter spacing and a jagged, "pixelated" look.
+    visuals.text_options.font_hinting = true;
+    visuals.text_options.subpixel_binning = true;
+
     visuals.override_text_color = Some(p.text_primary);
     visuals.window_fill = p.surface;
     visuals.panel_fill = if theme.dark_mode { p.window_bg } else { p.surface };

@@ -12,7 +12,8 @@ crates/
 
 - **Design tokens** — [`Palette`](crates/oxida/src/theme/palette.rs) (semantic colors), [`Typography`](crates/oxida/src/theme/typography.rs) and [`Metrics`](crates/oxida/src/theme/metrics.rs), with built-in `Light` and `Dark` themes
 - **Inter by default** — the [Inter](https://rsms.me/inter/) font (Regular/Medium/SemiBold/Bold, OFL-licensed) is bundled and installed by `oxida::init`; headings render in SemiBold
-- **Widgets** — `Button` (4 variants × 3 sizes), `TextInput`, `Slider`, `Toggle`
+- **Widgets** — `Button` (4 variants × 3 sizes), `IconButton`, `TextInput`, `Slider`, `Toggle`, `Checkbox`, `Radio`, `Select`, `DropdownMenu`, `Badge`, `Card`, `Alert`, `Tabs`, `Separator`, `ProgressBar`, `Spinner`, `Avatar`
+- **Phosphor Icons** — 3,000+ bundled Phosphor icons (`oxida::icons`) across Regular, Bold and Fill weights
 - **Extension trait API** — `ui.oxida().button("Save")`, following the modern egui ecosystem pattern (`egui_extras`, `egui_flex`, ...)
 - **Themes style egui itself too** — panels, menus, `TextEdit`, checkboxes and other built-in widgets match the active theme
 
@@ -32,10 +33,10 @@ use oxida::prelude::*;
 oxida::init(&cc.egui_ctx, &Theme::dark());
 
 // Each frame:
-ui.oxida().text_input(&mut self.name).placeholder("Nome").ui(ui);
+ui.oxida().text_input(&mut self.name).placeholder("Name").ui(ui);
 ui.oxida().slider(&mut self.volume, 0.0..=100.0).label("Volume").suffix("%").ui(ui);
 
-if ui.oxida().button("Salvar").clicked() {
+if ui.oxida().button("Save").clicked() {
     println!("{}", self.name);
 }
 ```
@@ -71,12 +72,41 @@ Useful environment variables:
 
 ## Roadmap
 
-- [x] Milestone 1 — theme tokens + Button, TextInput, Slider, Toggle + gallery
-- [x] Font loading helper (bundling Inter as the default font)
-- [ ] Select/Combo, Checkbox, Radio, Progress bar, Spinner, Tabs
-- [ ] Keyboard navigation and focus rings for all custom widgets
+### Completed
+- [x] **Milestone 1** — Theme tokens (`Palette`, `Typography`, `Metrics`) + `Button`, `TextInput`, `Slider`, `Toggle` + interactive gallery
+- [x] **Typography & Fonts** — Automated loading of the Inter font family (Regular, Medium, SemiBold, Bold)
+- [x] **Icon Pack** — Built-in Phosphor Icons support (3,000+ icons across Regular, Bold and Fill) and `IconButton` widget
+- [x] **Core Selection Widgets** — `Select` (shadcn style), `DropdownMenu`, `Checkbox`, `Radio`
+- [x] **Display & Feedback Widgets** — `Badge`, `Card` (borderless), `Alert` (styled), `Tabs` (segmented pills), `Separator`, `ProgressBar`, `Spinner`, `Avatar`
+
+### Desktop Shell & Layout
+- [ ] **Custom Titlebar** — Frameless window header with minimize, maximize, close controls, drag area, and action slots
+- [ ] **Resizable Splitter / Panels** — Resizable split layout (horizontal/vertical with persistence)
+- [ ] **Status Bar** — Compact window footer for state, sync indicator, and shortcuts
+
+### Desktop Productivity & Navigation
+- [ ] **`CommandPalette` (`Ctrl + K` / `⌘K`)** — Floating modal with fuzzy search and quick actions
+- [ ] **`Kbd`** — Visual keyboard shortcut badge for buttons, menus, and tooltips
+- [ ] **`Sidebar` / `NavRail`** — Collapsible side navigation drawer with icons and labels
+- [ ] **`TreeView`** — Hierarchical tree viewer for directories, layers, and settings nodes
+- [ ] **`Breadcrumbs`** — Hierarchical breadcrumb navigation trail
+
+### Overlays & Feedback
+- [ ] **`Toast`** — Floating stacked notifications system (with auto-dismiss and action hooks)
+- [ ] **`Dialog` / `Modal`** — Centered modal dialogs with backdrop for confirmations and action flows
+- [ ] **`ContextMenu`** — First-class right-click contextual menu support for arbitrary widgets
+
+### Desktop Forms & Data
+- [ ] **`SearchInput`** — Specialized search field with Phosphor search icon, clear button, and shortcut badge
+- [ ] **`NumberInput` / `DragValue`** — Stepper with mouse wheel scrubbing and horizontal drag support
+- [ ] **`Table` / Data Grid** — Desktop table with column sorting and row selection
+- [ ] **`EmptyState`** — Visual placeholder with icon, message, and primary call-to-action for empty lists/views
+
+### Ergonomics & Infrastructure
+- [ ] Full keyboard navigation and accessible focus rings (`focus_ring`) for all widgets
+- [ ] Density modes (Compact vs Comfortable)
 - [ ] Theme serialization (`serde`) and live theme editor
-- [ ] Screenshots in CI (`egui_kittest`)
+- [ ] CI visual regression testing (`egui_kittest`)
 
 ## License
 
