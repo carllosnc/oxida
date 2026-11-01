@@ -11,6 +11,7 @@ crates/
 ## Features
 
 - **Design tokens** — [`Palette`](crates/oxida/src/theme/palette.rs) (semantic colors), [`Typography`](crates/oxida/src/theme/typography.rs) and [`Metrics`](crates/oxida/src/theme/metrics.rs), with built-in `Light` and `Dark` themes
+- **Inter by default** — the [Inter](https://rsms.me/inter/) font (Regular/Medium/SemiBold/Bold, OFL-licensed) is bundled and installed by `oxida::init`; headings render in SemiBold
 - **Widgets** — `Button` (4 variants × 3 sizes), `TextInput`, `Slider`, `Toggle`
 - **Extension trait API** — `ui.oxida().button("Save")`, following the modern egui ecosystem pattern (`egui_extras`, `egui_flex`, ...)
 - **Themes style egui itself too** — panels, menus, `TextEdit`, checkboxes and other built-in widgets match the active theme
@@ -61,12 +62,19 @@ A live viewer for every component, with a dark/light switcher:
 cargo run -p oxida-demo
 ```
 
+Useful environment variables:
+
+| Variable | Effect |
+| --- | --- |
+| `OXIDA_THEME=light\|dark` | Starting theme (default: `dark`) |
+| `OXIDA_SCREENSHOT=path.png` | Save a PNG of the gallery after a few frames and exit (used for visual testing) |
+
 ## Roadmap
 
 - [x] Milestone 1 — theme tokens + Button, TextInput, Slider, Toggle + gallery
+- [x] Font loading helper (bundling Inter as the default font)
 - [ ] Select/Combo, Checkbox, Radio, Progress bar, Spinner, Tabs
 - [ ] Keyboard navigation and focus rings for all custom widgets
-- [ ] Font loading helper (e.g. bundling Inter)
 - [ ] Theme serialization (`serde`) and live theme editor
 - [ ] Screenshots in CI (`egui_kittest`)
 

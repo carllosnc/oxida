@@ -20,10 +20,12 @@ fn main() -> eframe::Result {
         "oxida-demo",
         options,
         Box::new(|cc| {
-            let theme = Theme::dark();
+            // OXIDA_THEME=light|dark picks the starting theme (default: dark).
+            let dark = std::env::var("OXIDA_THEME").map_or(true, |v| v != "light");
+            let theme = if dark { Theme::dark() } else { Theme::light() };
             oxida::init(&cc.egui_ctx, &theme);
             Ok(Box::new(App {
-                dark: true,
+                dark,
                 theme,
                 ..Default::default()
             }))
@@ -35,6 +37,7 @@ fn main() -> eframe::Result {
 struct App {
     dark: bool,
     theme: Theme,
+    frames: u32,
 
     // Widget state shown in the gallery.
     name: String,
@@ -51,6 +54,31 @@ impl eframe::App for App {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         self.sidebar(ui);
         self.gallery(ui);
+
+        // Auto-screenshot helper for visual verification:
+        // OXIDA_SCREENSHOT=path.png cargo run -p oxida-demo
+        if let Ok(path) = std::env::var("OXIDA_SCREENSHOT") {
+            self.frames += 1;
+            if self.frames == 15 {
+                ui.ctx().request_screenshot(move |image| {
+                    let [w, h] = image.size;
+                    let mut buf = Vec::with_capacity(w * h * 4);
+                    for px in &image.pixels {
+                        buf.extend_from_slice(&px.to_array());
+                    }
+                    match image::RgbaImage::from_raw(w as u32, h as u32, buf)
+                        .expect("raw buffer size")
+                        .save(&path)
+                    {
+                        Ok(()) => std::process::exit(0),
+                        Err(e) => {
+                            eprintln!("screenshot save failed: {e}");
+                            std::process::exit(1);
+                        }
+                    }
+                });
+            }
+        }
     }
 }
 
@@ -117,7 +145,9 @@ impl App {
 
                 // Buttons -----------------------------------------------------
                 section(ui, &theme, "Buttons", |ui| {
-                    ui.horizontal_wrapped(|ui| {
+                    let row = egui::Layout::left_to_right(egui::Align::Min)
+                        .with_main_wrap(true);
+                    ui.with_layout(row, |ui| {
                         ui.spacing_mut().item_spacing.x = 8.0;
                         ui.oxida().button("Primary");
                         ui.oxida().secondary_button("Secondary");
@@ -125,7 +155,7 @@ impl App {
                         ui.oxida().danger_button("Delete");
                     });
                     ui.add_space(8.0);
-                    ui.horizontal_wrapped(|ui| {
+                    ui.with_layout(row, |ui| {
                         ui.spacing_mut().item_spacing.x = 8.0;
                         Button::new("Small").size(Size::Sm).ui(ui);
                         Button::new("Medium").size(Size::Md).ui(ui);
@@ -218,11 +248,14 @@ impl App {
 /// A titled section wrapped in a themed card.
 fn section(ui: &mut egui::Ui, theme: &Theme, title: &str, add: impl FnOnce(&mut egui::Ui)) {
     ui.add_space(16.0);
-    ui.label(
-        egui::RichText::new(title)
-            .size(theme.typography.lg)
-            .strong(),
-    );
+    ui.label(egui::RichText::new(title).text_style(egui::TextStyle::Heading));
     ui.add_space(6.0);
-    theme.card_frame().show(ui, add);
+    // Force the card to full width: frames otherwise hug their content,
+    // making sections look inconsistent.
+    let available = ui.available_width();
+    let inner_min = (available - theme.metrics.spacing_unit * 8.0).max(0.0);
+    theme.card_frame().show(ui, |ui| {
+        ui.set_min_width(inner_min);
+        add(ui);
+    });
 }

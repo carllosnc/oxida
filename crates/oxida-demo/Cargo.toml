@@ -11,3 +11,4 @@ publish = false
 oxida = { path = "../oxida" }
 egui.workspace = true
 eframe.workspace = true
+image = "0.25"

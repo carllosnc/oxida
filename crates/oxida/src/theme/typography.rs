@@ -19,6 +19,11 @@ pub struct Typography {
     pub lg: f32,
     /// Title: page/window titles.
     pub title: f32,
+    /// Font family used for [`TextStyle::Heading`].
+    ///
+    /// Defaults to the bundled Inter SemiBold
+    /// ([`crate::fonts::SEMI_BOLD`]).
+    pub heading_family: egui::FontFamily,
 }
 
 impl Default for Typography {
@@ -29,6 +34,7 @@ impl Default for Typography {
             md: 13.0,
             lg: 16.0,
             title: 20.0,
+            heading_family: egui::FontFamily::Name(crate::fonts::SEMI_BOLD.into()),
         }
     }
 }
@@ -50,7 +56,10 @@ impl Typography {
             (TextStyle::Small, FontId::new(self.xs, FontFamily::Proportional)),
             (TextStyle::Body, FontId::new(self.md, FontFamily::Proportional)),
             (TextStyle::Button, FontId::new(self.md, FontFamily::Proportional)),
-            (TextStyle::Heading, FontId::new(self.lg, FontFamily::Proportional)),
+            (
+                TextStyle::Heading,
+                FontId::new(self.lg, self.heading_family.clone()),
+            ),
             (TextStyle::Monospace, FontId::new(self.sm, FontFamily::Monospace)),
         ]
         .into_iter()

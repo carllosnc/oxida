@@ -89,8 +89,17 @@ impl Widget for Slider<'_> {
             step,
         } = self;
 
+        let (start, end) = (*range.start(), *range.end());
+        let span = end - start;
+
+        // Sanitize: the value must stay inside the range even if mutated
+        // externally (or by a previous theme/range change).
+        let clamped = value.clamp(start.min(end), start.max(end));
+        if (clamped - *value).abs() > f32::EPSILON {
+            *value = clamped;
+        }
+
         let format_value = |v: f32| {
-            let span = range.end() - range.start();
             let decimals = if span < 1.0 {
                 2
             } else if span <= 10.0 {
@@ -98,7 +107,7 @@ impl Widget for Slider<'_> {
             } else {
                 0
             };
-            format!("{:.1$}{}{}", v, decimals, suffix)
+            format!("{v:.decimals$}{suffix}")
         };
 
         let label_galley = label.map(|l| {
@@ -141,9 +150,6 @@ impl Widget for Slider<'_> {
             vec2(track_w, track_h),
         );
 
-        let (start, end) = (*range.start(), *range.end());
-        let span = end - start;
-
         // Interaction: the value follows the pointer while pressed or dragging.
         let enabled = ui.is_enabled();
         if enabled && (response.is_pointer_button_down_on() || response.dragged()) {
@@ -158,6 +164,7 @@ impl Widget for Slider<'_> {
                 if let Some(step) = step.filter(|s| *s > 0.0) {
                     v = ((v - start) / step).round() * step + start;
                 }
+                v = v.clamp(start.min(end), start.max(end));
                 if (v - *value).abs() > f32::EPSILON {
                     *value = v;
                     response.mark_changed();

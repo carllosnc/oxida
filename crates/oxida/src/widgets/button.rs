@@ -92,6 +92,16 @@ impl Widget for Button {
         let p = &theme.palette;
         let m = &theme.metrics;
 
+        // Resolve colors first: the text color must be known before layout,
+        // because galley colors are baked in at layout time.
+        let (base, hover, active, fg, border) = match self.variant {
+            ButtonVariant::Primary => (p.accent, p.accent_hover, p.accent_active, p.on_accent, p.accent),
+            ButtonVariant::Secondary => (p.surface, p.subtle, p.border, p.text_primary, p.border),
+            ButtonVariant::Ghost => (Color32::TRANSPARENT, p.subtle, p.border, p.text_primary, Color32::TRANSPARENT),
+            ButtonVariant::Danger => (p.danger, p.danger_hover, mix(p.danger, Color32::BLACK, 0.2), p.on_danger, p.danger),
+        };
+        let fg = if self.enabled { fg } else { p.text_disabled };
+
         let height = match self.size {
             Size::Sm => m.control_height_sm,
             Size::Md => m.control_height_md,
@@ -103,13 +113,15 @@ impl Widget for Button {
             Size::Lg => m.spacing_unit * 4.0,
         };
 
+        // Layout with `fg` baked into the galley (the theme's
+        // `override_text_color` would otherwise win over the paint color).
         let font_id = theme.typography.font_id(self.size);
-        let galley = self.label.into_galley(
-            ui,
-            Some(egui::TextWrapMode::Extend),
-            f32::INFINITY,
-            font_id,
-        );
+        let galley = ui
+            .scope(|ui| {
+                ui.style_mut().visuals.override_text_color = Some(fg);
+                self.label.into_galley(ui, Some(egui::TextWrapMode::Extend), f32::INFINITY, font_id)
+            })
+            .inner;
 
         let mut desired = vec2(galley.size().x + pad_x * 2.0, height);
         if self.fill_width {
@@ -119,15 +131,7 @@ impl Widget for Button {
         let sense = if self.enabled { Sense::click() } else { Sense::hover() };
         let (rect, response) = ui.allocate_exact_size(desired, sense);
 
-        // Resolve colors for this variant ------------------------------------
-        let (base, hover, active, fg, border) = match self.variant {
-            ButtonVariant::Primary => (p.accent, p.accent_hover, p.accent_active, p.on_accent, p.accent),
-            ButtonVariant::Secondary => (p.surface, p.subtle, p.border, p.text_primary, p.border),
-            ButtonVariant::Ghost => (Color32::TRANSPARENT, p.subtle, p.border, p.text_primary, Color32::TRANSPARENT),
-            ButtonVariant::Danger => (p.danger, p.danger_hover, mix(p.danger, Color32::BLACK, 0.2), p.on_danger, p.danger),
-        };
-
-        let (bg, fg) = if self.enabled {
+        let bg = if self.enabled {
             let hover_t = ui
                 .ctx()
                 .animate_bool_with_time(response.id, response.hovered(), 0.10);
@@ -135,9 +139,9 @@ impl Widget for Button {
             if response.is_pointer_button_down_on() {
                 bg = active;
             }
-            (bg, fg)
+            bg
         } else {
-            (crate::util::dim(base, p.window_bg, 0.6), p.text_disabled)
+            crate::util::dim(base, p.window_bg, 0.6)
         };
 
         // Paint ---------------------------------------------------------------

@@ -45,6 +45,7 @@
 mod style;
 mod util;
 
+pub mod fonts;
 pub mod theme;
 pub mod widgets;
 
@@ -68,12 +69,16 @@ impl OxidaUi for egui::Ui {
     }
 }
 
-/// Apply `theme` to `ctx`: restyles egui's built-in widgets and makes the
-/// theme available to every Oxida widget.
+/// Apply `theme` to `ctx`: installs the bundled Inter font, restyles egui's
+/// built-in widgets and makes the theme available to every Oxida widget.
 ///
-/// Call once at startup (e.g. inside `eframe::App::update`'s creation closure)
+/// Call once at startup (e.g. inside `eframe::App`'s creation closure)
 /// and again whenever the active theme changes.
+///
+/// If you need custom fonts, call [`fonts::install`] (or set your own
+/// [`egui::FontDefinitions`]) after this.
 pub fn init(ctx: &egui::Context, theme: &Theme) {
+    fonts::install(ctx);
     theme.apply(ctx);
 }
 
