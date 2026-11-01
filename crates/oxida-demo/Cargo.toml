@@ -1,0 +1,13 @@
+[package]
+name = "oxida-demo"
+description = "Gallery / showcase app for the oxida component library"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+publish = false
+
+[dependencies]
+oxida = { path = "../oxida" }
+egui.workspace = true
+eframe.workspace = true

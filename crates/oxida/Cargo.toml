@@ -1,0 +1,13 @@
+[package]
+name = "oxida"
+description = "A minimal, neutral design system and component library for egui"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+keywords = ["gui", "egui", "widgets", "design-system", "desktop"]
+categories = ["gui"]
+
+[dependencies]
+egui.workspace = true
