@@ -100,6 +100,7 @@ pub fn install(ctx: &egui::Context) {
     // Heavier weights, addressable via FontFamily::Name.
     // Each includes Phosphor as glyph fallback.
     for (name, weight, icon_font) in [
+        (REGULAR, REGULAR, PHOSPHOR),
         (MEDIUM, MEDIUM, PHOSPHOR),
         (SEMI_BOLD, SEMI_BOLD, PHOSPHOR_BOLD),
         (BOLD, BOLD, PHOSPHOR_BOLD),

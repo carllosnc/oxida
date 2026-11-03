@@ -2,7 +2,7 @@
 
 use egui::{
     pos2, vec2, Align2, Area, Color32, FontFamily, FontId, Id, Key, Order, ScrollArea,
-    Sense, Stroke, StrokeKind, TextEdit, Widget, WidgetText,
+    Sense, Stroke, StrokeKind, TextEdit, UiBuilder, Widget, WidgetText,
 };
 
 use super::Kbd;
@@ -216,7 +216,7 @@ impl<'a> CommandPalette<'a> {
             .fixed_pos(screen_rect.min)
             .show(ctx, |ui| {
                 let (_, resp) = ui.allocate_exact_size(screen_rect.size(), Sense::click());
-                let backdrop_color = Color32::from_black_alpha(140);
+                let backdrop_color = Color32::from_black_alpha(150);
                 ui.painter().rect_filled(screen_rect, 0.0, backdrop_color);
 
                 if resp.clicked() {
@@ -268,7 +268,7 @@ impl<'a> CommandPalette<'a> {
         }
 
         // 4. Modal Window Card
-        let modal_width = 540.0_f32.min(screen_rect.width() - 32.0);
+        let modal_width = 560.0_f32.min(screen_rect.width() - 32.0);
         let modal_id = self.id_salt.with("modal_window");
 
         Area::new(modal_id)
@@ -280,10 +280,10 @@ impl<'a> CommandPalette<'a> {
                     stroke: Stroke::new(m.border_width, p.border),
                     corner_radius: radius(m.radius_lg),
                     shadow: egui::epaint::Shadow {
-                        offset: [0, 8],
-                        blur: 24,
+                        offset: [0, 10],
+                        blur: 32,
                         spread: 0,
-                        color: Color32::from_black_alpha(100),
+                        color: Color32::from_black_alpha(130),
                     },
                     inner_margin: egui::Margin::same(0),
                     ..Default::default()
@@ -292,63 +292,76 @@ impl<'a> CommandPalette<'a> {
                 frame.show(ui, |ui| {
                     ui.set_width(modal_width);
 
-                    // --- Search Input Bar ---
-                    ui.horizontal(|ui| {
-                        ui.spacing_mut().item_spacing.x = 10.0;
-                        ui.add_space(14.0);
+                    // ==========================================
+                    // --- 1. Search Input Bar (Pixel Perfect) ---
+                    // ==========================================
+                    let bar_h = 52.0_f32;
+                    let (bar_rect, bar_resp) = ui.allocate_exact_size(vec2(modal_width, bar_h), Sense::click());
 
-                        // Icon
-                        let icon_font = FontId::new(theme.typography.md, FontFamily::Name(crate::fonts::REGULAR.into()));
+                    if ui.is_rect_visible(bar_rect) {
+                        // Magnifying glass icon in Phosphor font
+                        let icon_font = FontId::new(18.0, FontFamily::Name(crate::fonts::PHOSPHOR.into()));
                         let icon_galley = ui.scope(|ui| {
                             ui.style_mut().visuals.override_text_color = Some(p.text_secondary);
                             WidgetText::from(icons::MAGNIFYING_GLASS).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, icon_font)
                         }).inner;
-                        let (irect, _) = ui.allocate_exact_size(vec2(icon_galley.size().x, 48.0), Sense::hover());
-                        ui.painter().galley(
-                            pos2(irect.min.x, irect.center().y - icon_galley.size().y * 0.5),
-                            icon_galley,
-                            p.text_secondary,
+                        let icon_pos = pos2(
+                            bar_rect.min.x + 16.0,
+                            bar_rect.center().y - icon_galley.size().y * 0.5,
                         );
+                        ui.painter().galley(icon_pos, icon_galley, p.text_secondary);
 
-                        // Text input
-                        let text_w = modal_width - 80.0;
+                        // Esc key badge on trailing edge
+                        let esc_kbd = Kbd::new("Esc").size(super::Size::Sm);
+                        let esc_w = 32.0_f32;
+                        let esc_pos = pos2(bar_rect.max.x - 16.0 - esc_w, bar_rect.center().y - 9.0);
+                        let mut esc_ui = ui.new_child(UiBuilder::new().max_rect(egui::Rect::from_min_size(esc_pos, vec2(esc_w, 18.0))));
+                        esc_kbd.ui(&mut esc_ui);
+
+                        // Central TextEdit (Vertically Centered)
+                        let text_rect = egui::Rect::from_min_max(
+                            pos2(bar_rect.min.x + 44.0, bar_rect.min.y),
+                            pos2(bar_rect.max.x - 60.0, bar_rect.max.y),
+                        );
+                        let mut text_ui = ui.new_child(UiBuilder::new().max_rect(text_rect));
+
                         let search_id = self.id_salt.with("search_input");
                         let edit = TextEdit::singleline(&mut state.query)
                             .id(search_id)
                             .frame(egui::Frame::NONE)
-                            .min_size(vec2(text_w, 48.0))
+                            .min_size(text_rect.size())
+                            .align(Align2::LEFT_CENTER)
                             .hint_text(WidgetText::from(&self.placeholder))
                             .font(FontId::new(theme.typography.md, FontFamily::Name(crate::fonts::REGULAR.into())));
 
-                        let edit_resp = ui.add(edit);
+                        let edit_resp = text_ui.add(edit);
 
                         if state.focus_needed {
                             edit_resp.request_focus();
                             state.focus_needed = false;
                         }
 
-                        // Close button on far right
-                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            ui.add_space(12.0);
-                            let kbd = Kbd::new("Esc").size(super::Size::Sm);
-                            kbd.ui(ui);
-                        });
-                    });
+                        if bar_resp.clicked() && !edit_resp.has_focus() {
+                            edit_resp.request_focus();
+                        }
+                    }
 
                     // Hairline separator below input
                     let (s_rect, _) = ui.allocate_exact_size(vec2(modal_width, 1.0), Sense::hover());
                     ui.painter().hline(s_rect.x_range(), s_rect.center().y, Stroke::new(1.0, p.border));
 
-                    // --- Results List ---
-                    let max_list_height = 280.0_f32;
+                    // ==========================================
+                    // --- 2. Filtered Results List ---
+                    // ==========================================
+                    let max_list_height = 360.0_f32;
                     ScrollArea::vertical()
                         .max_height(max_list_height)
-                        .auto_shrink([false, true])
+                        .auto_shrink([false, false])
                         .show(ui, |ui| {
                             ui.set_width(modal_width);
 
                             if filtered_items.is_empty() {
-                                ui.add_space(28.0);
+                                ui.add_space(36.0);
                                 ui.vertical_centered(|ui| {
                                     ui.label(
                                         egui::RichText::new("Nenhum comando encontrado")
@@ -357,23 +370,23 @@ impl<'a> CommandPalette<'a> {
                                             .family(FontFamily::Name(crate::fonts::MEDIUM.into())),
                                     );
                                 });
-                                ui.add_space(28.0);
+                                ui.add_space(36.0);
                             } else {
-                                ui.add_space(6.0);
+                                ui.add_space(8.0);
                                 let mut last_group: Option<String> = None;
 
                                 for (filtered_idx, (_, item)) in filtered_items.iter().enumerate() {
                                     // Group Header
                                     if item.group != last_group {
                                         if let Some(ref grp) = item.group {
-                                            ui.add_space(4.0);
+                                            ui.add_space(6.0);
                                             ui.horizontal(|ui| {
-                                                ui.add_space(14.0);
+                                                ui.add_space(16.0);
                                                 ui.label(
                                                     egui::RichText::new(grp.to_uppercase())
-                                                        .size(theme.typography.xs)
+                                                        .size(theme.typography.xs - 0.5)
                                                         .family(FontFamily::Name(crate::fonts::SEMI_BOLD.into()))
-                                                        .color(mix(p.text_secondary, p.border, 0.3)),
+                                                        .color(mix(p.text_secondary, p.border, 0.4)),
                                                 );
                                             });
                                             ui.add_space(4.0);
@@ -381,82 +394,85 @@ impl<'a> CommandPalette<'a> {
                                         last_group = item.group.clone();
                                     }
 
-                                    // Item row
+                                    // Item Row
                                     let is_selected = filtered_idx == state.selected_idx;
-                                    let item_h = 36.0_f32;
-                                    let item_w = modal_width - 12.0;
+                                    let item_h = 38.0_f32;
+                                    let item_margin_x = 8.0_f32;
+                                    let item_w = modal_width - item_margin_x * 2.0;
 
-                                    ui.horizontal(|ui| {
-                                        ui.add_space(6.0);
-                                        let (rect, resp) = ui.allocate_exact_size(vec2(item_w, item_h), Sense::click());
+                                    let (rect, resp) = ui.allocate_exact_size(vec2(item_w, item_h), Sense::click());
+                                    // Shift rect to center horizontally
+                                    let row_rect = egui::Rect::from_min_size(
+                                        pos2(rect.min.x + item_margin_x, rect.min.y),
+                                        rect.size(),
+                                    );
 
-                                        if resp.hovered() {
-                                            state.selected_idx = filtered_idx;
+                                    if resp.hovered() {
+                                        state.selected_idx = filtered_idx;
+                                    }
+
+                                    if resp.clicked() {
+                                        executed_id = Some(item.id.clone());
+                                        *self.open = false;
+                                    }
+
+                                    if ui.is_rect_visible(row_rect) {
+                                        // Background highlight for selected/active
+                                        if is_selected {
+                                            ui.painter().rect(
+                                                row_rect,
+                                                radius(m.radius_md),
+                                                p.subtle,
+                                                Stroke::NONE,
+                                                StrokeKind::Inside,
+                                            );
                                         }
 
-                                        if resp.clicked() {
-                                            executed_id = Some(item.id.clone());
-                                            *self.open = false;
-                                        }
+                                        let text_color = if is_selected {
+                                            p.text_primary
+                                        } else {
+                                            mix(p.text_primary, p.text_secondary, 0.25)
+                                        };
 
-                                        if ui.is_rect_visible(rect) {
-                                            // Highlight background
-                                            if is_selected {
-                                                ui.painter().rect(
-                                                    rect,
-                                                    radius(m.radius_md),
-                                                    p.subtle,
-                                                    Stroke::NONE,
-                                                    StrokeKind::Inside,
-                                                );
-                                            }
+                                        let mut curr_x = row_rect.min.x + 12.0;
 
-                                            let text_color = if is_selected {
-                                                p.text_primary
-                                            } else {
-                                                mix(p.text_primary, p.text_secondary, 0.25)
-                                            };
-
-                                            let mut curr_x = rect.min.x + 10.0;
-
-                                            // Leading icon
-                                            if let Some(ref ic) = item.icon {
-                                                let ic_font = FontId::new(theme.typography.md, FontFamily::Name(crate::fonts::REGULAR.into()));
-                                                let ic_galley = ui.scope(|ui| {
-                                                    ui.style_mut().visuals.override_text_color = Some(text_color);
-                                                    WidgetText::from(ic.as_str()).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, ic_font)
-                                                }).inner;
-                                                let ic_pos = pos2(curr_x, rect.center().y - ic_galley.size().y * 0.5);
-                                                ui.painter().galley(ic_pos, ic_galley, text_color);
-                                                curr_x += 24.0;
-                                            }
-
-                                            // Title
-                                            let title_font = FontId::new(theme.typography.sm, FontFamily::Name(crate::fonts::MEDIUM.into()));
-                                            let title_galley = ui.scope(|ui| {
+                                        // Phosphor Leading Icon
+                                        if let Some(ref ic) = item.icon {
+                                            let ic_font = FontId::new(17.0, FontFamily::Name(crate::fonts::PHOSPHOR.into()));
+                                            let ic_galley = ui.scope(|ui| {
                                                 ui.style_mut().visuals.override_text_color = Some(text_color);
-                                                WidgetText::from(item.label.as_str()).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, title_font)
+                                                WidgetText::from(ic.as_str()).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, ic_font)
                                             }).inner;
-                                            let title_pos = pos2(curr_x, rect.center().y - title_galley.size().y * 0.5);
-                                            ui.painter().galley(title_pos, title_galley, text_color);
-
-                                            // Shortcut tag on right edge
-                                            if let Some(ref sc) = item.shortcut {
-                                                let sc_font = FontId::new(theme.typography.xs, FontFamily::Name(crate::fonts::REGULAR.into()));
-                                                let sc_galley = ui.scope(|ui| {
-                                                    ui.style_mut().visuals.override_text_color = Some(p.text_secondary);
-                                                    WidgetText::from(sc.as_str()).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, sc_font)
-                                                }).inner;
-                                                let sc_pos = pos2(
-                                                    rect.max.x - sc_galley.size().x - 12.0,
-                                                    rect.center().y - sc_galley.size().y * 0.5,
-                                                );
-                                                ui.painter().galley(sc_pos, sc_galley, p.text_secondary);
-                                            }
+                                            let ic_pos = pos2(curr_x, row_rect.center().y - ic_galley.size().y * 0.5);
+                                            ui.painter().galley(ic_pos, ic_galley, text_color);
+                                            curr_x += 26.0;
                                         }
-                                    });
+
+                                        // Item Title
+                                        let title_font = FontId::new(theme.typography.sm + 0.5, FontFamily::Name(crate::fonts::MEDIUM.into()));
+                                        let title_galley = ui.scope(|ui| {
+                                            ui.style_mut().visuals.override_text_color = Some(text_color);
+                                            WidgetText::from(item.label.as_str()).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, title_font)
+                                        }).inner;
+                                        let title_pos = pos2(curr_x, row_rect.center().y - title_galley.size().y * 0.5);
+                                        ui.painter().galley(title_pos, title_galley, text_color);
+
+                                        // Item Shortcut on right edge
+                                        if let Some(ref sc) = item.shortcut {
+                                            let sc_font = FontId::new(theme.typography.xs, FontFamily::Name(crate::fonts::REGULAR.into()));
+                                            let sc_galley = ui.scope(|ui| {
+                                                ui.style_mut().visuals.override_text_color = Some(p.text_secondary);
+                                                WidgetText::from(sc.as_str()).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, sc_font)
+                                            }).inner;
+                                            let sc_pos = pos2(
+                                                row_rect.max.x - sc_galley.size().x - 12.0,
+                                                row_rect.center().y - sc_galley.size().y * 0.5,
+                                            );
+                                            ui.painter().galley(sc_pos, sc_galley, p.text_secondary);
+                                        }
+                                    }
                                 }
-                                ui.add_space(6.0);
+                                ui.add_space(8.0);
                             }
                         });
 
@@ -464,26 +480,59 @@ impl<'a> CommandPalette<'a> {
                     let (f_sep, _) = ui.allocate_exact_size(vec2(modal_width, 1.0), Sense::hover());
                     ui.painter().hline(f_sep.x_range(), f_sep.center().y, Stroke::new(1.0, p.border));
 
-                    // --- Footer Hints ---
+                    // ==========================================
+                    // --- 3. Footer Bar with Kbd Badges ---
+                    // ==========================================
                     ui.horizontal(|ui| {
                         ui.spacing_mut().item_spacing.x = 16.0;
                         ui.add_space(14.0);
 
+                        let footer_h = 34.0_f32;
+                        let (hint_rect, _) = ui.allocate_exact_size(vec2(modal_width - 28.0, footer_h), Sense::hover());
+
                         let hint_font = FontId::new(theme.typography.xs, FontFamily::Name(crate::fonts::REGULAR.into()));
                         let hint_color = p.text_secondary;
+                        let kbd_color = mix(p.text_secondary, p.border, 0.4);
 
-                        let (hint_rect, _) = ui.allocate_exact_size(vec2(modal_width - 28.0, 30.0), Sense::hover());
+                        // Draw clean footer hints with keycaps: [↑↓] Navegar   [↵] Executar   [Esc] Fechar
+                        let mut curr_x = hint_rect.min.x;
+                        let center_y = hint_rect.center().y;
 
-                        let hints = "↑↓ Navegar    ↵ Executar    Esc Fechar";
-                        let galley = ui.scope(|ui| {
-                            ui.style_mut().visuals.override_text_color = Some(hint_color);
-                            WidgetText::from(hints).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, hint_font)
-                        }).inner;
-                        ui.painter().galley(
-                            pos2(hint_rect.min.x, hint_rect.center().y - galley.size().y * 0.5),
-                            galley,
-                            hint_color,
-                        );
+                        for (key, label) in [("↑↓", "Navegar"), ("↵", "Executar"), ("Esc", "Fechar")] {
+                            // Keycap
+                            let key_galley = ui.scope(|ui| {
+                                ui.style_mut().visuals.override_text_color = Some(hint_color);
+                                WidgetText::from(key).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, hint_font.clone())
+                            }).inner;
+                            let key_w = key_galley.size().x + 8.0;
+                            let key_rect = egui::Rect::from_center_size(pos2(curr_x + key_w * 0.5, center_y), vec2(key_w, 18.0));
+
+                            ui.painter().rect(
+                                key_rect,
+                                radius(m.radius_sm),
+                                p.subtle,
+                                Stroke::new(m.border_width, kbd_color),
+                                StrokeKind::Inside,
+                            );
+                            ui.painter().galley(
+                                pos2(key_rect.center().x - key_galley.size().x * 0.5, center_y - key_galley.size().y * 0.5),
+                                key_galley,
+                                hint_color,
+                            );
+                            curr_x += key_w + 6.0;
+
+                            // Label
+                            let lbl_galley = ui.scope(|ui| {
+                                ui.style_mut().visuals.override_text_color = Some(hint_color);
+                                WidgetText::from(label).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, hint_font.clone())
+                            }).inner;
+                            ui.painter().galley(
+                                pos2(curr_x, center_y - lbl_galley.size().y * 0.5),
+                                lbl_galley.clone(),
+                                hint_color,
+                            );
+                            curr_x += lbl_galley.size().x + 18.0;
+                        }
                     });
                 });
             });

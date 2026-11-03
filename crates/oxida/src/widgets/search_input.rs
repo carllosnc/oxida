@@ -116,10 +116,10 @@ impl<'t> SearchInput<'t> {
         let mut submitted = false;
 
         if ui.is_rect_visible(rect) {
-            // 1. Measure and position leading search icon
+            // 1. Measure and position leading search icon (Phosphor icon font)
             let icon_pad_left = 10.0_f32;
             let icon_color = p.text_secondary;
-            let icon_font = FontId::new(theme.typography.sm + 1.0, FontFamily::Name(crate::fonts::REGULAR.into()));
+            let icon_font = FontId::new(theme.typography.sm + 2.0, FontFamily::Name(crate::fonts::PHOSPHOR.into()));
             let icon_galley = ui.scope(|ui| {
                 ui.style_mut().visuals.override_text_color = Some(icon_color);
                 WidgetText::from(icons::MAGNIFYING_GLASS).into_galley(
@@ -272,7 +272,7 @@ impl<'t> SearchInput<'t> {
                     p.text_secondary
                 };
 
-                let x_font = FontId::new(theme.typography.xs + 1.0, FontFamily::Name(crate::fonts::MEDIUM.into()));
+                let x_font = FontId::new(theme.typography.xs + 2.0, FontFamily::Name(crate::fonts::PHOSPHOR.into()));
                 let x_galley = ui.scope(|ui| {
                     ui.style_mut().visuals.override_text_color = Some(x_color);
                     WidgetText::from(icons::X).into_galley(

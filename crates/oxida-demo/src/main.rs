@@ -70,7 +70,7 @@ impl Default for App {
             email: String::new(),
             password: String::new(),
             search_query: String::new(),
-            palette_open: false,
+            palette_open: std::env::var("OXIDA_PALETTE_OPEN").is_ok(),
             framework: "next".to_string(),
             role: "admin".to_string(),
             last_action: "Nenhuma ação recente".to_string(),
