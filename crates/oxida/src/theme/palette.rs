@@ -13,13 +13,13 @@ pub struct Palette {
     pub window_bg: Color32,
     /// Background for panels, sidebars and cards.
     pub surface: Color32,
-    /// Background for editable fields (text inputs, etc).
+    /// Background for editable fields (text inputs, selects, etc).
     pub field_bg: Color32,
-    /// Subtle background for hover states and tracks.
+    /// Subtle background for secondary buttons, hover states and tracks.
     pub subtle: Color32,
-    /// Default border color.
+    /// Default border color (used for dividers and separators).
     pub border: Color32,
-    /// Stronger border, used for hover/focus.
+    /// Stronger border, used for active dividers.
     pub border_strong: Color32,
 
     /// Main text color.
@@ -52,15 +52,15 @@ pub struct Palette {
 }
 
 impl Palette {
-    /// A clean, neutral light palette (near-white surfaces, near-black accent).
+    /// A clean, neutral light palette with soft contrasting surfaces.
     pub fn light() -> Self {
         Self {
             window_bg: Color32::from_rgb(250, 250, 250),
             surface: Color32::from_rgb(255, 255, 255),
-            field_bg: Color32::from_rgb(246, 246, 248),
-            subtle: Color32::from_rgb(240, 240, 243),
-            border: Color32::from_rgb(212, 212, 216),
-            border_strong: Color32::from_rgb(113, 113, 122),
+            field_bg: Color32::from_rgb(242, 242, 245),
+            subtle: Color32::from_rgb(235, 235, 239),
+            border: Color32::from_rgb(228, 228, 231),
+            border_strong: Color32::from_rgb(161, 161, 170),
 
             text_primary: Color32::from_rgb(24, 24, 27),
             text_secondary: Color32::from_rgb(113, 113, 122),
@@ -80,15 +80,15 @@ impl Palette {
         }
     }
 
-    /// A clean, neutral dark palette (dark surfaces, light accent).
+    /// A clean, neutral dark palette with soft contrasting surfaces.
     pub fn dark() -> Self {
         Self {
             window_bg: Color32::from_rgb(16, 16, 18),
             surface: Color32::from_rgb(24, 24, 27),
-            field_bg: Color32::from_rgb(30, 30, 33),
-            subtle: Color32::from_rgb(39, 39, 42),
-            border: Color32::from_rgb(55, 55, 60),
-            border_strong: Color32::from_rgb(113, 113, 122),
+            field_bg: Color32::from_rgb(32, 32, 36),
+            subtle: Color32::from_rgb(42, 42, 46),
+            border: Color32::from_rgb(48, 48, 54),
+            border_strong: Color32::from_rgb(85, 85, 92),
 
             text_primary: Color32::from_rgb(228, 228, 231),
             text_secondary: Color32::from_rgb(161, 161, 170),

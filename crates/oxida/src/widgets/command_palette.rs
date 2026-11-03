@@ -281,7 +281,7 @@ impl<'a> CommandPalette<'a> {
             .show(ctx, |ui| {
                 let frame = egui::Frame {
                     fill: p.surface,
-                    stroke: Stroke::new(m.border_width, p.border),
+                    stroke: Stroke::NONE,
                     corner_radius: radius(m.radius_lg),
                     shadow: egui::epaint::Shadow {
                         offset: [0, 10],
@@ -508,7 +508,6 @@ impl<'a> CommandPalette<'a> {
 
                     let hint_font = FontId::new(theme.typography.xs, FontFamily::Name(crate::fonts::REGULAR.into()));
                     let hint_color = p.text_secondary;
-                    let kbd_color = mix(p.text_secondary, p.border, 0.4);
 
                     let mut curr_x = hint_rect.min.x + 14.0;
                     let center_y = hint_rect.center().y;
@@ -526,7 +525,7 @@ impl<'a> CommandPalette<'a> {
                             key_rect,
                             radius(m.radius_sm),
                             p.subtle,
-                            Stroke::new(m.border_width, kbd_color),
+                            Stroke::NONE,
                             StrokeKind::Inside,
                         );
                         ui.painter().galley(

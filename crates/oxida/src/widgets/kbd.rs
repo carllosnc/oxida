@@ -157,7 +157,7 @@ impl Widget for Kbd {
             let mut curr_x = rect.min.x;
 
             let bg_color = p.subtle;
-            let border_stroke = Stroke::new(m.border_width, mix(p.border, p.subtle, 0.3));
+            let border_stroke = Stroke::NONE;
             let corner_r = radius(m.radius_sm);
 
             for (i, galley) in key_galleys.into_iter().enumerate() {

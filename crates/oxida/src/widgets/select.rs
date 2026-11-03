@@ -124,15 +124,13 @@ impl<T: Clone + PartialEq + 'static> Widget for Select<'_, T> {
             (WidgetText::from(""), true)
         };
 
-        // Trigger colors & visuals (shadcn/ui style)
+        // Trigger colors & visuals (borderless soft surface)
         let border_stroke = if !self.enabled {
-            Stroke::new(m.border_width, p.border)
-        } else if is_open {
-            Stroke::new(1.5, p.accent)
-        } else if response.hovered() {
-            Stroke::new(m.border_width, p.border_strong)
+            Stroke::NONE
+        } else if is_open || response.has_focus() {
+            Stroke::new(m.focus_ring_width, p.accent)
         } else {
-            Stroke::new(m.border_width, p.border)
+            Stroke::NONE
         };
 
         let bg = if !self.enabled {
@@ -195,7 +193,7 @@ impl<T: Clone + PartialEq + 'static> Widget for Select<'_, T> {
             .close_behavior(PopupCloseBehavior::CloseOnClick)
             .frame(egui::Frame {
                 fill: p.surface,
-                stroke: Stroke::new(m.border_width, p.border),
+                stroke: Stroke::NONE,
                 corner_radius: radius(m.radius_md),
                 inner_margin: Margin::same(4),
                 shadow: Shadow {

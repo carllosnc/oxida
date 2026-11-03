@@ -70,11 +70,11 @@ impl Widget for TextInput<'_> {
         // the horizontal padding lives in the frame (the stroke sits inside it).
         let frame = egui::Frame {
             inner_margin: Margin::symmetric(
-                (m.spacing_unit * 2.5 - m.border_width) as i8,
+                (m.spacing_unit * 2.5) as i8,
                 0,
             ),
             fill: p.field_bg,
-            stroke: Stroke::new(m.border_width, p.border),
+            stroke: Stroke::NONE,
             corner_radius: radius(m.radius_md),
             ..Default::default()
         };

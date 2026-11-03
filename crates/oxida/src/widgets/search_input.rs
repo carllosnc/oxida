@@ -210,30 +210,16 @@ impl<'t> SearchInput<'t> {
                 submitted = true;
             }
 
-            // 4. Background and border
+            // 4. Background and borderless soft surface
             let bg_color = p.field_bg;
-            let border_color = if is_focused {
-                p.accent
-            } else if container_response.hovered() || edit_response.hovered() {
-                mix(p.border, p.text_secondary, 0.4)
-            } else {
-                p.border
-            };
-
-            ui.painter().rect(
-                rect,
-                radius(m.radius_md),
-                bg_color,
-                Stroke::new(m.border_width, border_color),
-                StrokeKind::Inside,
-            );
+            ui.painter().rect_filled(rect, radius(m.radius_md), bg_color);
 
             // Focus ring
             if is_focused {
                 ui.painter().rect_stroke(
                     rect,
                     radius(m.radius_md),
-                    Stroke::new(m.border_width * 1.5, p.accent),
+                    Stroke::new(m.focus_ring_width, p.accent),
                     StrokeKind::Inside,
                 );
             }

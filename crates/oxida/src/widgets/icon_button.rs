@@ -93,7 +93,7 @@ impl Widget for IconButton {
 
         let (base, hover, active, fg, border) = match self.variant {
             ButtonVariant::Primary => (p.accent, p.accent_hover, p.accent_active, p.on_accent, p.accent),
-            ButtonVariant::Secondary => (p.surface, p.subtle, p.border, p.text_primary, p.border),
+            ButtonVariant::Secondary => (p.subtle, mix(p.subtle, p.border, 0.4), p.border, p.text_primary, Color32::TRANSPARENT),
             ButtonVariant::Ghost => (Color32::TRANSPARENT, p.subtle, p.border, p.text_primary, Color32::TRANSPARENT),
             ButtonVariant::Danger => (p.danger, p.danger_hover, mix(p.danger, Color32::BLACK, 0.2), p.on_danger, p.danger),
         };

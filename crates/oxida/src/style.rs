@@ -88,7 +88,7 @@ pub(crate) fn to_egui_style(theme: &Theme) -> Style {
 
     visuals.window_corner_radius = surface_rounding;
     visuals.menu_corner_radius = control_rounding;
-    visuals.window_stroke = Stroke::new(m.border_width, p.border);
+    visuals.window_stroke = Stroke::NONE;
     visuals.hyperlink_color = p.accent;
     visuals.warn_fg_color = p.warning;
     visuals.error_fg_color = p.danger;

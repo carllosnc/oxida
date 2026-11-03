@@ -64,19 +64,17 @@ impl<'a, R> DropdownMenu<'a, R> {
         // Note: Do NOT call Popup::toggle_id manually here.
         // `Popup::menu(&response)` already toggles open state when `response.clicked()` is true.
 
-        // Trigger visuals
-        let border_stroke = if is_open {
-            Stroke::new(1.5, p.accent)
-        } else if response.hovered() {
-            Stroke::new(m.border_width, p.border_strong)
+        // Trigger visuals (borderless soft surface)
+        let border_stroke = if is_open || response.has_focus() {
+            Stroke::new(m.focus_ring_width, p.accent)
         } else {
-            Stroke::new(m.border_width, p.border)
+            Stroke::NONE
         };
 
         let bg = if is_open || response.hovered() {
             p.subtle
         } else {
-            p.surface
+            p.field_bg
         };
 
         let rounding = radius(m.radius_md);
@@ -109,7 +107,7 @@ impl<'a, R> DropdownMenu<'a, R> {
             .close_behavior(PopupCloseBehavior::CloseOnClick)
             .frame(egui::Frame {
                 fill: p.surface,
-                stroke: Stroke::new(m.border_width, p.border),
+                stroke: Stroke::NONE,
                 corner_radius: radius(m.radius_md),
                 inner_margin: Margin::same(4),
                 shadow: Shadow {
