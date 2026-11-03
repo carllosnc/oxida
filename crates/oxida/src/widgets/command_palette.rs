@@ -1,7 +1,7 @@
 //! Themed Command Palette (`Ctrl+K` / `⌘K`) modal widget.
 
 use egui::{
-    pos2, vec2, Align2, Area, Color32, FontFamily, FontId, Id, Key, Order, ScrollArea,
+    pos2, vec2, Align, Align2, Area, Color32, FontFamily, FontId, Id, Key, Order, Rect, ScrollArea,
     Sense, Stroke, StrokeKind, TextEdit, UiBuilder, Widget, WidgetText,
 };
 
@@ -71,6 +71,7 @@ struct PaletteState {
     selected_idx: usize,
     was_open: bool,
     focus_needed: bool,
+    keyboard_navigated: bool,
 }
 
 /// Floating command palette modal overlay (`Ctrl+K` / `⌘K`).
@@ -194,6 +195,7 @@ impl<'a> CommandPalette<'a> {
             state.query.clear();
             state.selected_idx = 0;
             state.focus_needed = true;
+            state.keyboard_navigated = false;
         }
         state.was_open = *self.open;
 
@@ -249,6 +251,7 @@ impl<'a> CommandPalette<'a> {
             }
             if ctx.input(|i| i.key_pressed(Key::ArrowDown)) {
                 state.selected_idx = (state.selected_idx + 1) % num_filtered;
+                state.keyboard_navigated = true;
             }
             if ctx.input(|i| i.key_pressed(Key::ArrowUp)) {
                 state.selected_idx = if state.selected_idx == 0 {
@@ -256,6 +259,7 @@ impl<'a> CommandPalette<'a> {
                 } else {
                     state.selected_idx - 1
                 };
+                state.keyboard_navigated = true;
             }
             if ctx.input(|i| i.key_pressed(Key::Enter)) {
                 executed_id = Some(filtered_items[state.selected_idx].1.id.clone());
@@ -295,12 +299,12 @@ impl<'a> CommandPalette<'a> {
                     // ==========================================
                     // --- 1. Search Input Bar (Pixel Perfect) ---
                     // ==========================================
-                    let bar_h = 52.0_f32;
+                    let bar_h = 48.0_f32;
                     let (bar_rect, bar_resp) = ui.allocate_exact_size(vec2(modal_width, bar_h), Sense::click());
 
                     if ui.is_rect_visible(bar_rect) {
                         // Magnifying glass icon in Phosphor font
-                        let icon_font = FontId::new(18.0, FontFamily::Name(crate::fonts::PHOSPHOR.into()));
+                        let icon_font = FontId::new(17.0, FontFamily::Name(crate::fonts::PHOSPHOR.into()));
                         let icon_galley = ui.scope(|ui| {
                             ui.style_mut().visuals.override_text_color = Some(p.text_secondary);
                             WidgetText::from(icons::MAGNIFYING_GLASS).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, icon_font)
@@ -315,11 +319,11 @@ impl<'a> CommandPalette<'a> {
                         let esc_kbd = Kbd::new("Esc").size(super::Size::Sm);
                         let esc_w = 32.0_f32;
                         let esc_pos = pos2(bar_rect.max.x - 16.0 - esc_w, bar_rect.center().y - 9.0);
-                        let mut esc_ui = ui.new_child(UiBuilder::new().max_rect(egui::Rect::from_min_size(esc_pos, vec2(esc_w, 18.0))));
+                        let mut esc_ui = ui.new_child(UiBuilder::new().max_rect(Rect::from_min_size(esc_pos, vec2(esc_w, 18.0))));
                         esc_kbd.ui(&mut esc_ui);
 
                         // Central TextEdit (Vertically Centered)
-                        let text_rect = egui::Rect::from_min_max(
+                        let text_rect = Rect::from_min_max(
                             pos2(bar_rect.min.x + 44.0, bar_rect.min.y),
                             pos2(bar_rect.max.x - 60.0, bar_rect.max.y),
                         );
@@ -354,127 +358,143 @@ impl<'a> CommandPalette<'a> {
                     // --- 2. Filtered Results List ---
                     // ==========================================
                     let max_list_height = 360.0_f32;
-                    ScrollArea::vertical()
-                        .max_height(max_list_height)
-                        .auto_shrink([false, false])
-                        .show(ui, |ui| {
-                            ui.set_width(modal_width);
 
-                            if filtered_items.is_empty() {
-                                ui.add_space(36.0);
-                                ui.vertical_centered(|ui| {
-                                    ui.label(
-                                        egui::RichText::new("Nenhum comando encontrado")
-                                            .size(theme.typography.sm)
-                                            .color(p.text_secondary)
-                                            .family(FontFamily::Name(crate::fonts::MEDIUM.into())),
-                                    );
-                                });
-                                ui.add_space(36.0);
-                            } else {
-                                ui.add_space(8.0);
-                                let mut last_group: Option<String> = None;
+                    ui.scope(|ui| {
+                        // Scrollbar sits right next to the modal border, with smooth non-bouncing kinematics
+                        ui.spacing_mut().scroll.bar_outer_margin = 2.0;
+                        ui.spacing_mut().scroll.bar_inner_margin = 0.0;
+                        ui.spacing_mut().scroll.bar_width = 4.0;
+                        ui.spacing_mut().scroll.dormant_handle_opacity = 0.25;
+                        ui.spacing_mut().scroll.active_handle_opacity = 0.7;
+                        ui.spacing_mut().scroll.kinetic.rubber_band = false;
+                        ui.spacing_mut().item_spacing = vec2(0.0, 2.0);
 
-                                for (filtered_idx, (_, item)) in filtered_items.iter().enumerate() {
-                                    // Group Header
-                                    if item.group != last_group {
-                                        if let Some(ref grp) = item.group {
-                                            ui.add_space(6.0);
-                                            ui.horizontal(|ui| {
-                                                ui.add_space(16.0);
-                                                ui.label(
-                                                    egui::RichText::new(grp.to_uppercase())
-                                                        .size(theme.typography.xs - 0.5)
-                                                        .family(FontFamily::Name(crate::fonts::SEMI_BOLD.into()))
-                                                        .color(mix(p.text_secondary, p.border, 0.4)),
+                        ScrollArea::vertical()
+                            .max_height(max_list_height)
+                            .auto_shrink([false, true])
+                            .show(ui, |ui| {
+                                if filtered_items.is_empty() {
+                                    ui.add_space(28.0);
+                                    ui.vertical_centered(|ui| {
+                                        ui.label(
+                                            egui::RichText::new("Nenhum comando encontrado")
+                                                .size(theme.typography.sm)
+                                                .color(p.text_secondary)
+                                                .family(FontFamily::Name(crate::fonts::MEDIUM.into())),
+                                        );
+                                    });
+                                    ui.add_space(28.0);
+                                } else {
+                                    ui.add_space(4.0);
+                                    let mut last_group: Option<String> = None;
+                                    let available_w = ui.available_width();
+                                    let item_margin_x = 6.0_f32;
+                                    let item_w = (available_w - item_margin_x * 2.0).max(0.0);
+                                    let item_h = 36.0_f32;
+
+                                    for (filtered_idx, (_, item)) in filtered_items.iter().enumerate() {
+                                        // Group Header
+                                        if item.group != last_group {
+                                            if let Some(ref grp) = item.group {
+                                                if last_group.is_some() {
+                                                    ui.add_space(8.0);
+                                                } else {
+                                                    ui.add_space(2.0);
+                                                }
+                                                ui.horizontal(|ui| {
+                                                    ui.add_space(item_margin_x + 8.0);
+                                                    ui.label(
+                                                        egui::RichText::new(grp.to_uppercase())
+                                                            .size(11.0)
+                                                            .family(FontFamily::Name(crate::fonts::SEMI_BOLD.into()))
+                                                            .color(p.text_secondary),
+                                                    );
+                                                });
+                                                ui.add_space(2.0);
+                                            }
+                                            last_group = item.group.clone();
+                                        }
+
+                                        // Item Row
+                                        let is_selected = filtered_idx == state.selected_idx;
+                                        let (rect, resp) = ui.allocate_exact_size(vec2(available_w, item_h), Sense::click());
+                                        let row_rect = Rect::from_center_size(rect.center(), vec2(item_w, item_h));
+
+                                        // Only update selected item on hover if pointer actually moved
+                                        if resp.hovered() && ui.input(|i| i.pointer.delta() != vec2(0.0, 0.0)) {
+                                            state.selected_idx = filtered_idx;
+                                            state.keyboard_navigated = false;
+                                        }
+
+                                        // Scroll to selected item only during keyboard navigation
+                                        if is_selected && state.keyboard_navigated {
+                                            resp.scroll_to_me(Some(Align::Center));
+                                        }
+
+                                        if resp.clicked() {
+                                            executed_id = Some(item.id.clone());
+                                            *self.open = false;
+                                        }
+
+                                        if ui.is_rect_visible(row_rect) {
+                                            if is_selected {
+                                                ui.painter().rect(
+                                                    row_rect,
+                                                    radius(m.radius_md),
+                                                    p.subtle,
+                                                    Stroke::NONE,
+                                                    StrokeKind::Inside,
                                                 );
-                                            });
-                                            ui.add_space(4.0);
-                                        }
-                                        last_group = item.group.clone();
-                                    }
+                                            }
 
-                                    // Item Row
-                                    let is_selected = filtered_idx == state.selected_idx;
-                                    let item_h = 38.0_f32;
-                                    let item_margin_x = 8.0_f32;
-                                    let item_w = modal_width - item_margin_x * 2.0;
+                                            let text_color = if is_selected {
+                                                p.text_primary
+                                            } else {
+                                                mix(p.text_primary, p.text_secondary, 0.25)
+                                            };
 
-                                    let (rect, resp) = ui.allocate_exact_size(vec2(item_w, item_h), Sense::click());
-                                    // Shift rect to center horizontally
-                                    let row_rect = egui::Rect::from_min_size(
-                                        pos2(rect.min.x + item_margin_x, rect.min.y),
-                                        rect.size(),
-                                    );
+                                            let mut curr_x = row_rect.min.x + 10.0;
 
-                                    if resp.hovered() {
-                                        state.selected_idx = filtered_idx;
-                                    }
+                                            // Phosphor Leading Icon
+                                            if let Some(ref ic) = item.icon {
+                                                let ic_font = FontId::new(16.0, FontFamily::Name(crate::fonts::PHOSPHOR.into()));
+                                                let ic_galley = ui.scope(|ui| {
+                                                    ui.style_mut().visuals.override_text_color = Some(text_color);
+                                                    WidgetText::from(ic.as_str()).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, ic_font)
+                                                }).inner;
+                                                let ic_pos = pos2(curr_x, row_rect.center().y - ic_galley.size().y * 0.5);
+                                                ui.painter().galley(ic_pos, ic_galley, text_color);
+                                                curr_x += 24.0;
+                                            }
 
-                                    if resp.clicked() {
-                                        executed_id = Some(item.id.clone());
-                                        *self.open = false;
-                                    }
-
-                                    if ui.is_rect_visible(row_rect) {
-                                        // Background highlight for selected/active
-                                        if is_selected {
-                                            ui.painter().rect(
-                                                row_rect,
-                                                radius(m.radius_md),
-                                                p.subtle,
-                                                Stroke::NONE,
-                                                StrokeKind::Inside,
-                                            );
-                                        }
-
-                                        let text_color = if is_selected {
-                                            p.text_primary
-                                        } else {
-                                            mix(p.text_primary, p.text_secondary, 0.25)
-                                        };
-
-                                        let mut curr_x = row_rect.min.x + 12.0;
-
-                                        // Phosphor Leading Icon
-                                        if let Some(ref ic) = item.icon {
-                                            let ic_font = FontId::new(17.0, FontFamily::Name(crate::fonts::PHOSPHOR.into()));
-                                            let ic_galley = ui.scope(|ui| {
+                                            // Item Title
+                                            let title_font = FontId::new(theme.typography.sm + 0.5, FontFamily::Name(crate::fonts::MEDIUM.into()));
+                                            let title_galley = ui.scope(|ui| {
                                                 ui.style_mut().visuals.override_text_color = Some(text_color);
-                                                WidgetText::from(ic.as_str()).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, ic_font)
+                                                WidgetText::from(item.label.as_str()).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, title_font)
                                             }).inner;
-                                            let ic_pos = pos2(curr_x, row_rect.center().y - ic_galley.size().y * 0.5);
-                                            ui.painter().galley(ic_pos, ic_galley, text_color);
-                                            curr_x += 26.0;
-                                        }
+                                            let title_pos = pos2(curr_x, row_rect.center().y - title_galley.size().y * 0.5);
+                                            ui.painter().galley(title_pos, title_galley, text_color);
 
-                                        // Item Title
-                                        let title_font = FontId::new(theme.typography.sm + 0.5, FontFamily::Name(crate::fonts::MEDIUM.into()));
-                                        let title_galley = ui.scope(|ui| {
-                                            ui.style_mut().visuals.override_text_color = Some(text_color);
-                                            WidgetText::from(item.label.as_str()).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, title_font)
-                                        }).inner;
-                                        let title_pos = pos2(curr_x, row_rect.center().y - title_galley.size().y * 0.5);
-                                        ui.painter().galley(title_pos, title_galley, text_color);
-
-                                        // Item Shortcut on right edge
-                                        if let Some(ref sc) = item.shortcut {
-                                            let sc_font = FontId::new(theme.typography.xs, FontFamily::Name(crate::fonts::REGULAR.into()));
-                                            let sc_galley = ui.scope(|ui| {
-                                                ui.style_mut().visuals.override_text_color = Some(p.text_secondary);
-                                                WidgetText::from(sc.as_str()).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, sc_font)
-                                            }).inner;
-                                            let sc_pos = pos2(
-                                                row_rect.max.x - sc_galley.size().x - 12.0,
-                                                row_rect.center().y - sc_galley.size().y * 0.5,
-                                            );
-                                            ui.painter().galley(sc_pos, sc_galley, p.text_secondary);
+                                            // Item Shortcut on right edge
+                                            if let Some(ref sc) = item.shortcut {
+                                                let sc_font = FontId::new(theme.typography.xs, FontFamily::Name(crate::fonts::REGULAR.into()));
+                                                let sc_galley = ui.scope(|ui| {
+                                                    ui.style_mut().visuals.override_text_color = Some(p.text_secondary);
+                                                    WidgetText::from(sc.as_str()).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, sc_font)
+                                                }).inner;
+                                                let sc_pos = pos2(
+                                                    row_rect.max.x - sc_galley.size().x - 10.0,
+                                                    row_rect.center().y - sc_galley.size().y * 0.5,
+                                                );
+                                                ui.painter().galley(sc_pos, sc_galley, p.text_secondary);
+                                            }
                                         }
                                     }
+                                    ui.add_space(4.0);
                                 }
-                                ui.add_space(8.0);
-                            }
-                        });
+                            });
+                    });
 
                     // Hairline separator above footer
                     let (f_sep, _) = ui.allocate_exact_size(vec2(modal_width, 1.0), Sense::hover());
@@ -483,57 +503,51 @@ impl<'a> CommandPalette<'a> {
                     // ==========================================
                     // --- 3. Footer Bar with Kbd Badges ---
                     // ==========================================
-                    ui.horizontal(|ui| {
-                        ui.spacing_mut().item_spacing.x = 16.0;
-                        ui.add_space(14.0);
+                    let footer_h = 32.0_f32;
+                    let (hint_rect, _) = ui.allocate_exact_size(vec2(modal_width, footer_h), Sense::hover());
 
-                        let footer_h = 34.0_f32;
-                        let (hint_rect, _) = ui.allocate_exact_size(vec2(modal_width - 28.0, footer_h), Sense::hover());
+                    let hint_font = FontId::new(theme.typography.xs, FontFamily::Name(crate::fonts::REGULAR.into()));
+                    let hint_color = p.text_secondary;
+                    let kbd_color = mix(p.text_secondary, p.border, 0.4);
 
-                        let hint_font = FontId::new(theme.typography.xs, FontFamily::Name(crate::fonts::REGULAR.into()));
-                        let hint_color = p.text_secondary;
-                        let kbd_color = mix(p.text_secondary, p.border, 0.4);
+                    let mut curr_x = hint_rect.min.x + 14.0;
+                    let center_y = hint_rect.center().y;
 
-                        // Draw clean footer hints with keycaps: [↑↓] Navegar   [↵] Executar   [Esc] Fechar
-                        let mut curr_x = hint_rect.min.x;
-                        let center_y = hint_rect.center().y;
+                    for (key, label) in [("↑↓", "Navegar"), ("↵", "Executar"), ("Esc", "Fechar")] {
+                        // Keycap
+                        let key_galley = ui.scope(|ui| {
+                            ui.style_mut().visuals.override_text_color = Some(hint_color);
+                            WidgetText::from(key).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, hint_font.clone())
+                        }).inner;
+                        let key_w = key_galley.size().x + 8.0;
+                        let key_rect = Rect::from_center_size(pos2(curr_x + key_w * 0.5, center_y), vec2(key_w, 18.0));
 
-                        for (key, label) in [("↑↓", "Navegar"), ("↵", "Executar"), ("Esc", "Fechar")] {
-                            // Keycap
-                            let key_galley = ui.scope(|ui| {
-                                ui.style_mut().visuals.override_text_color = Some(hint_color);
-                                WidgetText::from(key).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, hint_font.clone())
-                            }).inner;
-                            let key_w = key_galley.size().x + 8.0;
-                            let key_rect = egui::Rect::from_center_size(pos2(curr_x + key_w * 0.5, center_y), vec2(key_w, 18.0));
+                        ui.painter().rect(
+                            key_rect,
+                            radius(m.radius_sm),
+                            p.subtle,
+                            Stroke::new(m.border_width, kbd_color),
+                            StrokeKind::Inside,
+                        );
+                        ui.painter().galley(
+                            pos2(key_rect.center().x - key_galley.size().x * 0.5, center_y - key_galley.size().y * 0.5),
+                            key_galley,
+                            hint_color,
+                        );
+                        curr_x += key_w + 6.0;
 
-                            ui.painter().rect(
-                                key_rect,
-                                radius(m.radius_sm),
-                                p.subtle,
-                                Stroke::new(m.border_width, kbd_color),
-                                StrokeKind::Inside,
-                            );
-                            ui.painter().galley(
-                                pos2(key_rect.center().x - key_galley.size().x * 0.5, center_y - key_galley.size().y * 0.5),
-                                key_galley,
-                                hint_color,
-                            );
-                            curr_x += key_w + 6.0;
-
-                            // Label
-                            let lbl_galley = ui.scope(|ui| {
-                                ui.style_mut().visuals.override_text_color = Some(hint_color);
-                                WidgetText::from(label).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, hint_font.clone())
-                            }).inner;
-                            ui.painter().galley(
-                                pos2(curr_x, center_y - lbl_galley.size().y * 0.5),
-                                lbl_galley.clone(),
-                                hint_color,
-                            );
-                            curr_x += lbl_galley.size().x + 18.0;
-                        }
-                    });
+                        // Label
+                        let lbl_galley = ui.scope(|ui| {
+                            ui.style_mut().visuals.override_text_color = Some(hint_color);
+                            WidgetText::from(label).into_galley(ui, Some(egui::TextWrapMode::Truncate), f32::INFINITY, hint_font.clone())
+                        }).inner;
+                        ui.painter().galley(
+                            pos2(curr_x, center_y - lbl_galley.size().y * 0.5),
+                            lbl_galley.clone(),
+                            hint_color,
+                        );
+                        curr_x += lbl_galley.size().x + 16.0;
+                    }
                 });
             });
 
