@@ -105,7 +105,7 @@ impl Widget for IconButton {
         };
 
         let side = match self.size {
-            Size::Sm => m.control_height_sm,
+            Size::Sm => m.control_height_sm.max(28.0),
             Size::Md => m.control_height_md,
             Size::Lg => m.control_height_lg,
         };
@@ -168,11 +168,22 @@ impl Widget for IconButton {
             );
         }
 
+        let press_offset = if self.enabled && response.is_pointer_button_down_on() { 0.5 } else { 0.0 };
         let icon_pos = pos2(
             rect.center().x - galley.size().x / 2.0,
-            rect.center().y - galley.size().y / 2.0,
+            rect.center().y - galley.size().y / 2.0 + press_offset,
         );
         ui.painter().galley(icon_pos, galley, label_color);
+
+        // Focus ring (WCAG 2.4.7 / 2.4.11)
+        if response.has_focus() {
+            ui.painter().rect_stroke(
+                rect.expand(m.focus_ring_offset),
+                radius(corner_r + m.focus_ring_offset),
+                Stroke::new(m.focus_ring_width, p.accent),
+                StrokeKind::Outside,
+            );
+        }
 
         if let Some(tooltip) = self.tooltip {
             response = response.on_hover_text(tooltip);

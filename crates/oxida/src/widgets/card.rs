@@ -82,10 +82,13 @@ impl Card {
                     .color(p.text_primary),
             );
             ui.add_space(2.0);
-            ui.label(
-                egui::RichText::new(description.into().text())
-                    .size(t.sm)
-                    .color(p.text_secondary),
+            ui.add(
+                egui::Label::new(
+                    egui::RichText::new(description.into().text())
+                        .size(t.sm)
+                        .color(p.text_secondary),
+                )
+                .wrap_mode(egui::TextWrapMode::Wrap),
             );
             ui.add_space(14.0);
         });

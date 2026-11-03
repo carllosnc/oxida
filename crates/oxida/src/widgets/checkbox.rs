@@ -94,7 +94,8 @@ impl Widget for Checkbox<'_> {
         };
         let (rect, mut response) = ui.allocate_exact_size(desired, sense);
 
-        if is_enabled && response.clicked() {
+        let space_pressed = response.has_focus() && ui.input(|i| i.key_pressed(egui::Key::Space));
+        if is_enabled && (response.clicked() || space_pressed) {
             *checked = !*checked;
             response.mark_changed();
         }
@@ -174,6 +175,16 @@ impl Widget for Checkbox<'_> {
                 p.text_primary
             };
             ui.painter().galley(label_pos, g, text_color);
+        }
+
+        // Focus ring (WCAG 2.4.7 / 2.4.11)
+        if response.has_focus() {
+            ui.painter().rect_stroke(
+                box_rect.expand(m.focus_ring_offset),
+                radius(m.radius_sm + m.focus_ring_offset),
+                Stroke::new(m.focus_ring_width, p.accent),
+                StrokeKind::Outside,
+            );
         }
 
         response

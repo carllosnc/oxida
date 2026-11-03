@@ -57,10 +57,10 @@ impl Palette {
         Self {
             window_bg: Color32::from_rgb(250, 250, 250),
             surface: Color32::from_rgb(255, 255, 255),
-            field_bg: Color32::from_rgb(252, 252, 253),
-            subtle: Color32::from_rgb(244, 244, 245),
-            border: Color32::from_rgb(228, 228, 231),
-            border_strong: Color32::from_rgb(161, 161, 170),
+            field_bg: Color32::from_rgb(246, 246, 248),
+            subtle: Color32::from_rgb(240, 240, 243),
+            border: Color32::from_rgb(212, 212, 216),
+            border_strong: Color32::from_rgb(113, 113, 122),
 
             text_primary: Color32::from_rgb(24, 24, 27),
             text_secondary: Color32::from_rgb(113, 113, 122),

@@ -99,7 +99,8 @@ impl<T: PartialEq + 'static> Widget for Radio<'_, T> {
         };
         let (rect, mut response) = ui.allocate_exact_size(desired, sense);
 
-        if is_enabled && response.clicked() && !is_selected {
+        let space_pressed = response.has_focus() && ui.input(|i| i.key_pressed(egui::Key::Space));
+        if is_enabled && (response.clicked() || space_pressed) && !is_selected {
             *current_value = selected_value;
             response.mark_changed();
         }
@@ -155,6 +156,15 @@ impl<T: PartialEq + 'static> Widget for Radio<'_, T> {
                 p.text_primary
             };
             ui.painter().galley(label_pos, g, text_color);
+        }
+
+        // Focus ring (WCAG 2.4.7 / 2.4.11)
+        if response.has_focus() {
+            ui.painter().circle_stroke(
+                center,
+                circle_radius + m.focus_ring_offset,
+                Stroke::new(m.focus_ring_width, p.accent),
+            );
         }
 
         response

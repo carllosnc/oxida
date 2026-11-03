@@ -177,7 +177,7 @@ impl App {
                             .color(p.text_primary),
                     );
                     ui.label(
-                        egui::RichText::new("component gallery")
+                        egui::RichText::new("galeria de componentes")
                             .size(t.sm)
                             .color(p.text_secondary),
                     );
@@ -224,15 +224,15 @@ impl App {
                         let content_w = 480.0_f32.min(ui.available_width() - 36.0);
 
                         // 1. Buttons -------------------------------------------------
-                        section_header(ui, "Buttons", &theme);
+                        section_header(ui, "Botões (Buttons)", &theme);
 
                         subhead(ui, "VARIANTES", &theme);
                         ui.horizontal(|ui| {
                             ui.spacing_mut().item_spacing.x = 10.0;
-                            ui.oxida().button("Primary");
-                            ui.oxida().secondary_button("Secondary");
+                            ui.oxida().button("Primário");
+                            ui.oxida().secondary_button("Secundário");
                             ui.oxida().ghost_button("Ghost");
-                            ui.oxida().danger_button("Delete");
+                            ui.oxida().danger_button("Excluir");
                         });
 
                         ui.add_space(14.0);
@@ -290,10 +290,10 @@ impl App {
                         subhead(ui, "TAMANHOS E ESTADOS", &theme);
                         ui.horizontal(|ui| {
                             ui.spacing_mut().item_spacing.x = 10.0;
-                            Button::new("Small").size(Size::Sm).ui(ui);
-                            Button::new("Medium").size(Size::Md).ui(ui);
-                            Button::new("Large").size(Size::Lg).ui(ui);
-                            Button::new("Disabled").enabled(false).ui(ui);
+                            Button::new("Pequeno").size(Size::Sm).ui(ui);
+                            Button::new("Médio").size(Size::Md).ui(ui);
+                            Button::new("Grande").size(Size::Lg).ui(ui);
+                            Button::new("Desabilitado").enabled(false).ui(ui);
                         });
 
                         ui.add_space(14.0);
@@ -310,17 +310,17 @@ impl App {
                         Separator::horizontal().spacing(36.0).ui(ui);
 
                         // 2. Badges & Tags -------------------------------------------
-                        section_header(ui, "Badges & Tags", &theme);
+                        section_header(ui, "Emblemas & Tags (Badges)", &theme);
 
                         subhead(ui, "VARIANTES", &theme);
                         ui.horizontal(|ui| {
                             ui.spacing_mut().item_spacing.x = 8.0;
-                            Badge::default_badge("Default").ui(ui);
-                            Badge::secondary("Secondary").ui(ui);
-                            Badge::outline("Outline").ui(ui);
-                            Badge::success("Success").ui(ui);
-                            Badge::warning("Warning").ui(ui);
-                            Badge::destructive("Destructive").ui(ui);
+                            Badge::default_badge("Padrão").ui(ui);
+                            Badge::secondary("Secundário").ui(ui);
+                            Badge::outline("Contorno").ui(ui);
+                            Badge::success("Sucesso").ui(ui);
+                            Badge::warning("Aviso").ui(ui);
+                            Badge::destructive("Destrutivo").ui(ui);
                         });
 
                         ui.add_space(14.0);
@@ -578,7 +578,7 @@ impl App {
                         );
 
                         // Divider ----------------------------------------------------
-                        divider(ui, &theme);
+                        Separator::horizontal().spacing(36.0).ui(ui);
 
                         // 9. Selects & Dropdown Menus (shadcn/ui style) --------------
                         section_header(ui, "Seleção & Menus (Select & Dropdown)", &theme);
@@ -643,7 +643,7 @@ impl App {
                         );
 
                         // Divider ----------------------------------------------------
-                        divider(ui, &theme);
+                        Separator::horizontal().spacing(36.0).ui(ui);
 
                         // 10. Seleção (Checkbox & Radio) -----------------------------
                         section_header(ui, "Seleção (Checkbox & Radio)", &theme);
@@ -693,7 +693,7 @@ impl App {
                         });
 
                         // Divider ----------------------------------------------------
-                        divider(ui, &theme);
+                        Separator::horizontal().spacing(36.0).ui(ui);
 
                         // 11. Sliders ------------------------------------------------
                         section_header(ui, "Deslizadores (Sliders)", &theme);
@@ -719,7 +719,7 @@ impl App {
                         );
 
                         // Divider ----------------------------------------------------
-                        divider(ui, &theme);
+                        Separator::horizontal().spacing(36.0).ui(ui);
 
                         // 12. Toggles ------------------------------------------------
                         section_header(ui, "Interruptores (Toggles)", &theme);
@@ -736,7 +736,7 @@ impl App {
                             .ui(ui);
 
                         // Divider ----------------------------------------------------
-                        divider(ui, &theme);
+                        Separator::horizontal().spacing(36.0).ui(ui);
 
                         // 13. Integração com egui nativo ----------------------------
                         section_header(ui, "Integração nativa", &theme);
@@ -755,18 +755,7 @@ impl App {
     }
 }
 
-/// Linha divisória horizontal sutil usando a cor do tema.
-fn divider(ui: &mut egui::Ui, theme: &Theme) {
-    ui.add_space(22.0);
-    let width = (ui.available_width() - 32.0).max(0.0);
-    let (rect, _) = ui.allocate_exact_size(egui::vec2(width, 1.0), egui::Sense::hover());
-    ui.painter().hline(
-        rect.x_range(),
-        rect.center().y,
-        egui::Stroke::new(1.0, theme.palette.border),
-    );
-    ui.add_space(22.0);
-}
+
 
 /// Cabeçalho padronizado para as seções da galeria (título limpo e destacado).
 fn section_header(ui: &mut egui::Ui, title: &str, theme: &Theme) {

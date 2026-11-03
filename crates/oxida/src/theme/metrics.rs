@@ -25,6 +25,11 @@ pub struct Metrics {
 
     /// Border width for controls and surfaces.
     pub border_width: f32,
+
+    /// Width of the keyboard focus ring stroke.
+    pub focus_ring_width: f32,
+    /// Offset distance of the keyboard focus ring from the element edge.
+    pub focus_ring_offset: f32,
 }
 
 impl Default for Metrics {
@@ -38,6 +43,8 @@ impl Default for Metrics {
             radius_md: 6.0,
             radius_lg: 10.0,
             border_width: 1.0,
+            focus_ring_width: 1.5,
+            focus_ring_offset: 2.0,
         }
     }
 }

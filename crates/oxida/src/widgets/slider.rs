@@ -155,6 +155,20 @@ impl Widget for Slider<'_> {
 
         // Interaction: the value follows the pointer while pressed or dragging.
         let enabled = ui.is_enabled();
+        if enabled && response.has_focus() {
+            let step_size = step.unwrap_or(if span > 10.0 { 1.0 } else { span / 100.0 });
+            let mut delta = 0.0;
+            if ui.input(|i| i.key_pressed(egui::Key::ArrowLeft) || i.key_pressed(egui::Key::ArrowDown)) {
+                delta -= step_size;
+            }
+            if ui.input(|i| i.key_pressed(egui::Key::ArrowRight) || i.key_pressed(egui::Key::ArrowUp)) {
+                delta += step_size;
+            }
+            if delta != 0.0 {
+                *value = (*value + delta).clamp(start.min(end), start.max(end));
+                response.mark_changed();
+            }
+        }
         if enabled && (response.is_pointer_button_down_on() || response.dragged()) {
             if let Some(pos) = response.interact_pointer_pos() {
                 let mut t = if track_w > 0.0 {
@@ -240,6 +254,15 @@ impl Widget for Slider<'_> {
                 rect.center().y - g.size().y / 2.0,
             );
             painter.galley(pos, g, p.text_primary);
+        }
+
+        // Focus ring (WCAG 2.4.7 / 2.4.11)
+        if response.has_focus() {
+            painter.circle_stroke(
+                knob_center,
+                knob_r + m.focus_ring_offset,
+                Stroke::new(m.focus_ring_width, p.accent),
+            );
         }
 
         response

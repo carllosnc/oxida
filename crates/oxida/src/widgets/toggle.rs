@@ -1,6 +1,6 @@
 //! Themed on/off switch.
 
-use egui::{pos2, vec2, Rect, Response, Sense, Ui, Widget, WidgetText};
+use egui::{pos2, vec2, Rect, Response, Sense, Stroke, StrokeKind, Ui, Widget, WidgetText};
 
 use crate::theme;
 use crate::util::{mix, radius};
@@ -70,7 +70,8 @@ impl Widget for Toggle<'_> {
             vec2(track_w, track_h),
         );
 
-        if enabled && response.clicked() {
+        let space_pressed = response.has_focus() && ui.input(|i| i.key_pressed(egui::Key::Space));
+        if enabled && (response.clicked() || space_pressed) {
             *value = !*value;
             response.mark_changed();
         }
@@ -104,6 +105,16 @@ impl Widget for Toggle<'_> {
             let pos = pos2(rect.left(), rect.center().y - g.size().y / 2.0);
             let color = if enabled { p.text_primary } else { p.text_disabled };
             painter.galley(pos, g, color);
+        }
+
+        // Focus ring (WCAG 2.4.7 / 2.4.11)
+        if response.has_focus() {
+            painter.rect_stroke(
+                switch_rect.expand(m.focus_ring_offset),
+                radius(track_h / 2.0 + m.focus_ring_offset),
+                Stroke::new(m.focus_ring_width, p.accent),
+                StrokeKind::Outside,
+            );
         }
 
         response

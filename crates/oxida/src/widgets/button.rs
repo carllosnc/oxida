@@ -269,11 +269,14 @@ impl Widget for Button {
             );
         }
 
+        // Subtle physical depression on press
+        let press_offset = if self.enabled && response.is_pointer_button_down_on() { 0.5 } else { 0.0 };
+
         let mut curr_x = rect.center().x - content_width / 2.0;
         if let Some(ref ig) = icon_galley {
             let icon_pos = pos2(
                 curr_x,
-                rect.center().y - ig.size().y / 2.0,
+                rect.center().y - ig.size().y / 2.0 + press_offset,
             );
             ui.painter().galley(icon_pos, ig.clone(), label_color);
             curr_x += ig.size().x;
@@ -285,7 +288,7 @@ impl Widget for Button {
         if has_text {
             let text_pos = pos2(
                 curr_x,
-                rect.center().y - text_galley.size().y / 2.0,
+                rect.center().y - text_galley.size().y / 2.0 + press_offset,
             );
             curr_x += text_galley.size().x;
             ui.painter().galley(text_pos, text_galley, label_color);
@@ -297,9 +300,19 @@ impl Widget for Button {
         if let Some(ref tag) = icon_after_galley {
             let icon_pos = pos2(
                 curr_x,
-                rect.center().y - tag.size().y / 2.0,
+                rect.center().y - tag.size().y / 2.0 + press_offset,
             );
             ui.painter().galley(icon_pos, tag.clone(), label_color);
+        }
+
+        // Focus ring (WCAG 2.4.7 / 2.4.11)
+        if response.has_focus() {
+            ui.painter().rect_stroke(
+                rect.expand(m.focus_ring_offset),
+                radius(corner_r + m.focus_ring_offset),
+                Stroke::new(m.focus_ring_width, p.accent),
+                StrokeKind::Outside,
+            );
         }
 
         response
