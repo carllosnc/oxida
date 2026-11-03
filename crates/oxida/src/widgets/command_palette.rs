@@ -280,7 +280,7 @@ impl<'a> CommandPalette<'a> {
             .anchor(Align2::CENTER_CENTER, vec2(0.0, -60.0))
             .show(ctx, |ui| {
                 let frame = egui::Frame {
-                    fill: p.surface,
+                    fill: p.popover,
                     stroke: Stroke::NONE,
                     corner_radius: radius(m.radius_lg),
                     shadow: egui::epaint::Shadow {

@@ -65,13 +65,15 @@ impl<'a, R> DropdownMenu<'a, R> {
         // `Popup::menu(&response)` already toggles open state when `response.clicked()` is true.
 
         // Trigger visuals (borderless soft surface)
-        let border_stroke = if is_open || response.has_focus() {
+        let border_stroke = if response.has_focus() {
             Stroke::new(m.focus_ring_width, p.accent)
         } else {
             Stroke::NONE
         };
 
-        let bg = if is_open || response.hovered() {
+        let bg = if is_open {
+            mix(p.subtle, p.accent, 0.08)
+        } else if response.hovered() {
             p.subtle
         } else {
             p.field_bg
@@ -93,9 +95,18 @@ impl<'a, R> DropdownMenu<'a, R> {
         );
         ui.painter().galley(text_pos, galley, p.text_primary);
 
-        // Chevron
+        // Chevron (points up when open with higher contrast)
         let chevron_center = pos2(rect.right() - 14.0, rect.center().y);
-        paint_chevron_down(ui.painter(), chevron_center, p.text_secondary);
+        let chevron_color = if is_open {
+            p.text_primary
+        } else {
+            p.text_secondary
+        };
+        if is_open {
+            paint_chevron_up(ui.painter(), chevron_center, chevron_color);
+        } else {
+            paint_chevron_down(ui.painter(), chevron_center, chevron_color);
+        }
 
         // Popover Content
         let min_popup_w = self.width.unwrap_or(220.0).max(rect.width());
@@ -106,19 +117,19 @@ impl<'a, R> DropdownMenu<'a, R> {
             .gap(4.0)
             .close_behavior(PopupCloseBehavior::CloseOnClick)
             .frame(egui::Frame {
-                fill: p.surface,
+                fill: p.popover,
                 stroke: Stroke::NONE,
                 corner_radius: radius(m.radius_md),
                 inner_margin: Margin::same(4),
                 shadow: Shadow {
                     color: if theme.dark_mode {
-                        Color32::from_black_alpha(100)
+                        Color32::from_black_alpha(160)
                     } else {
-                        Color32::from_black_alpha(24)
+                        Color32::from_black_alpha(45)
                     },
-                    offset: [0, 4],
-                    blur: 10,
-                    spread: 0,
+                    offset: [0, 8],
+                    blur: 20,
+                    spread: if theme.dark_mode { 0 } else { 2 },
                 },
                 ..Default::default()
             });
@@ -204,7 +215,7 @@ impl DropdownMenuUi<'_> {
         self.ui.painter().hline(
             rect.x_range(),
             rect.center().y,
-            Stroke::new(1.0, p.border),
+            Stroke::new(1.0, mix(p.popover, p.subtle, 0.7)),
         );
         self.ui.add_space(4.0);
     }
@@ -227,7 +238,7 @@ impl DropdownMenuUi<'_> {
             Color32::TRANSPARENT
         } else if response.hovered() {
             if danger {
-                crate::util::dim(p.danger, p.surface, 0.85)
+                crate::util::dim(p.danger, p.popover, 0.85)
             } else {
                 p.subtle
             }
@@ -275,6 +286,26 @@ impl DropdownMenuUi<'_> {
 
         response
     }
+}
+
+/// Paint a clean vector chevron pointing up.
+fn paint_chevron_up(painter: &egui::Painter, center: egui::Pos2, color: egui::Color32) {
+    let stroke = egui::Stroke::new(1.4, color);
+    let size = 3.2;
+    painter.line_segment(
+        [
+            pos2(center.x - size, center.y + 1.2),
+            pos2(center.x, center.y - 2.0),
+        ],
+        stroke,
+    );
+    painter.line_segment(
+        [
+            pos2(center.x, center.y - 2.0),
+            pos2(center.x + size, center.y + 1.2),
+        ],
+        stroke,
+    );
 }
 
 /// Paint a clean vector chevron pointing down.

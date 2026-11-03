@@ -127,7 +127,7 @@ impl<T: Clone + PartialEq + 'static> Widget for Select<'_, T> {
         // Trigger colors & visuals (borderless soft surface)
         let border_stroke = if !self.enabled {
             Stroke::NONE
-        } else if is_open || response.has_focus() {
+        } else if response.has_focus() {
             Stroke::new(m.focus_ring_width, p.accent)
         } else {
             Stroke::NONE
@@ -135,6 +135,8 @@ impl<T: Clone + PartialEq + 'static> Widget for Select<'_, T> {
 
         let bg = if !self.enabled {
             p.subtle
+        } else if is_open {
+            crate::util::mix(p.subtle, p.accent, 0.08)
         } else if response.hovered() {
             crate::util::mix(p.field_bg, p.subtle, 0.5)
         } else {
@@ -143,6 +145,8 @@ impl<T: Clone + PartialEq + 'static> Widget for Select<'_, T> {
 
         let fg = if !self.enabled {
             p.text_disabled
+        } else if is_open {
+            p.text_primary
         } else if is_placeholder {
             p.text_secondary
         } else {
@@ -176,14 +180,20 @@ impl<T: Clone + PartialEq + 'static> Widget for Select<'_, T> {
         );
         ui.painter().galley(text_pos, galley, fg);
 
-        // Subtle chevron down on the right
+        // Subtle chevron on the right (points up when open with higher contrast)
         let chevron_center = pos2(rect.right() - 16.0, rect.center().y);
-        let chevron_color = if self.enabled {
-            p.text_secondary
-        } else {
+        let chevron_color = if !self.enabled {
             p.text_disabled
+        } else if is_open {
+            p.text_primary
+        } else {
+            p.text_secondary
         };
-        paint_chevron_down(ui.painter(), chevron_center, chevron_color);
+        if is_open {
+            paint_chevron_up(ui.painter(), chevron_center, chevron_color);
+        } else {
+            paint_chevron_down(ui.painter(), chevron_center, chevron_color);
+        }
 
         // Popup Menu (shadcn/ui popover)
         let popup = Popup::menu(&response)
@@ -192,19 +202,19 @@ impl<T: Clone + PartialEq + 'static> Widget for Select<'_, T> {
             .gap(4.0)
             .close_behavior(PopupCloseBehavior::CloseOnClick)
             .frame(egui::Frame {
-                fill: p.surface,
+                fill: p.popover,
                 stroke: Stroke::NONE,
                 corner_radius: radius(m.radius_md),
                 inner_margin: Margin::same(4),
                 shadow: Shadow {
                     color: if theme.dark_mode {
-                        Color32::from_black_alpha(100)
+                        Color32::from_black_alpha(160)
                     } else {
-                        Color32::from_black_alpha(24)
+                        Color32::from_black_alpha(45)
                     },
-                    offset: [0, 4],
-                    blur: 10,
-                    spread: 0,
+                    offset: [0, 8],
+                    blur: 20,
+                    spread: if theme.dark_mode { 0 } else { 2 },
                 },
                 ..Default::default()
             });
@@ -228,6 +238,8 @@ impl<T: Clone + PartialEq + 'static> Widget for Select<'_, T> {
 
                         let item_bg = if item_response.hovered() {
                             p.subtle
+                        } else if is_active {
+                            crate::util::mix(p.popover, p.subtle, 0.6)
                         } else {
                             Color32::TRANSPARENT
                         };
@@ -235,7 +247,7 @@ impl<T: Clone + PartialEq + 'static> Widget for Select<'_, T> {
                         let item_fg = if is_active || item_response.hovered() {
                             p.text_primary
                         } else {
-                            p.text_secondary
+                            crate::util::mix(p.text_primary, p.text_secondary, 0.25)
                         };
 
                         ui.painter().rect_filled(
@@ -283,6 +295,26 @@ impl<T: Clone + PartialEq + 'static> Widget for Select<'_, T> {
 
         response
     }
+}
+
+/// Paint a clean, sharp vector chevron pointing up.
+fn paint_chevron_up(painter: &egui::Painter, center: egui::Pos2, color: egui::Color32) {
+    let stroke = egui::Stroke::new(1.4, color);
+    let size = 3.2;
+    painter.line_segment(
+        [
+            pos2(center.x - size, center.y + 1.2),
+            pos2(center.x, center.y - 2.0),
+        ],
+        stroke,
+    );
+    painter.line_segment(
+        [
+            pos2(center.x, center.y - 2.0),
+            pos2(center.x + size, center.y + 1.2),
+        ],
+        stroke,
+    );
 }
 
 /// Paint a clean, sharp vector chevron pointing down.

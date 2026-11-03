@@ -13,6 +13,8 @@ pub struct Palette {
     pub window_bg: Color32,
     /// Background for panels, sidebars and cards.
     pub surface: Color32,
+    /// Elevated background for floating overlays, popovers, dropdowns and selects.
+    pub popover: Color32,
     /// Background for editable fields (text inputs, selects, etc).
     pub field_bg: Color32,
     /// Subtle background for secondary buttons, hover states and tracks.
@@ -57,6 +59,7 @@ impl Palette {
         Self {
             window_bg: Color32::from_rgb(250, 250, 250),
             surface: Color32::from_rgb(255, 255, 255),
+            popover: Color32::from_rgb(255, 255, 255),
             field_bg: Color32::from_rgb(242, 242, 245),
             subtle: Color32::from_rgb(235, 235, 239),
             border: Color32::from_rgb(228, 228, 231),
@@ -85,8 +88,9 @@ impl Palette {
         Self {
             window_bg: Color32::from_rgb(16, 16, 18),
             surface: Color32::from_rgb(24, 24, 27),
+            popover: Color32::from_rgb(36, 36, 42),
             field_bg: Color32::from_rgb(32, 32, 36),
-            subtle: Color32::from_rgb(42, 42, 46),
+            subtle: Color32::from_rgb(48, 48, 54),
             border: Color32::from_rgb(48, 48, 54),
             border_strong: Color32::from_rgb(85, 85, 92),
 

@@ -91,6 +91,18 @@ impl Default for App {
 
 impl eframe::App for App {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        if std::env::var("OXIDA_OPEN_SELECT").is_ok() {
+            egui::containers::Popup::open_id(
+                ui.ctx(),
+                egui::Id::unique("framework_select").with("popup"),
+            );
+        }
+        if std::env::var("OXIDA_OPEN_DROPDOWN").is_ok() {
+            egui::containers::Popup::open_id(
+                ui.ctx(),
+                egui::Id::unique("menu_acoes").with("dropdown_popup"),
+            );
+        }
         self.header(ui);
         self.gallery(ui);
         self.command_palette(ui.ctx());
