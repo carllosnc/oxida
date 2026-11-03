@@ -234,9 +234,7 @@ impl<T: Clone + PartialEq + 'static> Widget for Select<'_, T> {
                             Color32::TRANSPARENT
                         };
 
-                        let item_fg = if is_active {
-                            p.text_primary
-                        } else if item_response.hovered() {
+                        let item_fg = if is_active || item_response.hovered() {
                             p.text_primary
                         } else {
                             p.text_secondary

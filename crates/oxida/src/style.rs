@@ -93,13 +93,14 @@ pub(crate) fn to_egui_style(theme: &Theme) -> Style {
     visuals.warn_fg_color = p.warning;
     visuals.error_fg_color = p.danger;
 
-    let mut popup_shadow = egui::Shadow::default();
-    popup_shadow.color = if theme.dark_mode {
-        egui::Color32::from_black_alpha(120)
-    } else {
-        egui::Color32::from_black_alpha(32)
+    visuals.popup_shadow = egui::Shadow {
+        color: if theme.dark_mode {
+            egui::Color32::from_black_alpha(120)
+        } else {
+            egui::Color32::from_black_alpha(32)
+        },
+        ..Default::default()
     };
-    visuals.popup_shadow = popup_shadow;
 
     style.visuals = visuals;
     style

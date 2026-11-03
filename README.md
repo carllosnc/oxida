@@ -12,7 +12,7 @@ crates/
 
 - **Design tokens** — [`Palette`](crates/oxida/src/theme/palette.rs) (semantic colors), [`Typography`](crates/oxida/src/theme/typography.rs) and [`Metrics`](crates/oxida/src/theme/metrics.rs), with built-in `Light` and `Dark` themes
 - **Inter by default** — the [Inter](https://rsms.me/inter/) font (Regular/Medium/SemiBold/Bold, OFL-licensed) is bundled and installed by `oxida::init`; headings render in SemiBold
-- **Widgets** — `Button` (4 variants × 3 sizes), `IconButton`, `TextInput`, `Slider`, `Toggle`, `Checkbox`, `Radio`, `Select`, `DropdownMenu`, `Badge`, `Card`, `Alert`, `Tabs`, `Separator`, `ProgressBar`, `Spinner`, `Avatar`
+- **Widgets** — `Button` (4 variants × 3 sizes), `IconButton`, `TextInput`, `SearchInput`, `Slider`, `Toggle`, `Checkbox`, `Radio`, `Select`, `DropdownMenu`, `Badge`, `Kbd`, `Breadcrumbs`, `CommandPalette`, `Card`, `Alert`, `Tabs`, `Separator`, `ProgressBar`, `Spinner`, `Avatar`
 - **Phosphor Icons** — 3,000+ bundled Phosphor icons (`oxida::icons`) across Regular, Bold and Fill weights
 - **Extension trait API** — `ui.oxida().button("Save")`, following the modern egui ecosystem pattern (`egui_extras`, `egui_flex`, ...)
 - **Themes style egui itself too** — panels, menus, `TextEdit`, checkboxes and other built-in widgets match the active theme
@@ -78,18 +78,14 @@ Useful environment variables:
 - [x] **Icon Pack** — Built-in Phosphor Icons support (3,000+ icons across Regular, Bold and Fill) and `IconButton` widget
 - [x] **Core Selection Widgets** — `Select` (shadcn style), `DropdownMenu`, `Checkbox`, `Radio`
 - [x] **Display & Feedback Widgets** — `Badge`, `Card` (borderless), `Alert` (styled), `Tabs` (segmented pills), `Separator`, `ProgressBar`, `Spinner`, `Avatar`
+- [x] **Desktop Productivity & Navigation** — `CommandPalette` (`Ctrl + K` / `⌘K`), `Kbd` (shortcut keycaps), `Breadcrumbs` (hierarchical trail), `SearchInput` (search with clear & icon)
 
 ### Desktop Shell & Layout
 - [ ] **Custom Titlebar** — Frameless window header with minimize, maximize, close controls, drag area, and action slots
 - [ ] **Resizable Splitter / Panels** — Resizable split layout (horizontal/vertical with persistence)
 - [ ] **Status Bar** — Compact window footer for state, sync indicator, and shortcuts
-
-### Desktop Productivity & Navigation
-- [ ] **`CommandPalette` (`Ctrl + K` / `⌘K`)** — Floating modal with fuzzy search and quick actions
-- [ ] **`Kbd`** — Visual keyboard shortcut badge for buttons, menus, and tooltips
 - [ ] **`Sidebar` / `NavRail`** — Collapsible side navigation drawer with icons and labels
 - [ ] **`TreeView`** — Hierarchical tree viewer for directories, layers, and settings nodes
-- [ ] **`Breadcrumbs`** — Hierarchical breadcrumb navigation trail
 
 ### Overlays & Feedback
 - [ ] **`Toast`** — Floating stacked notifications system (with auto-dismiss and action hooks)
@@ -97,7 +93,6 @@ Useful environment variables:
 - [ ] **`ContextMenu`** — First-class right-click contextual menu support for arbitrary widgets
 
 ### Desktop Forms & Data
-- [ ] **`SearchInput`** — Specialized search field with Phosphor search icon, clear button, and shortcut badge
 - [ ] **`NumberInput` / `DragValue`** — Stepper with mouse wheel scrubbing and horizontal drag support
 - [ ] **`Table` / Data Grid** — Desktop table with column sorting and row selection
 - [ ] **`EmptyState`** — Visual placeholder with icon, message, and primary call-to-action for empty lists/views

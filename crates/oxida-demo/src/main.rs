@@ -10,7 +10,7 @@ use oxida::prelude::*;
 fn main() -> eframe::Result {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([880.0, 680.0])
+            .with_inner_size([880.0, 720.0])
             .with_min_inner_size([560.0, 420.0])
             .with_title("Oxida Gallery"),
         ..Default::default()
@@ -42,6 +42,8 @@ struct App {
     name: String,
     email: String,
     password: String,
+    search_query: String,
+    palette_open: bool,
     framework: String,
     role: String,
     last_action: String,
@@ -67,6 +69,8 @@ impl Default for App {
             name: String::new(),
             email: String::new(),
             password: String::new(),
+            search_query: String::new(),
+            palette_open: false,
             framework: "next".to_string(),
             role: "admin".to_string(),
             last_action: "Nenhuma ação recente".to_string(),
@@ -89,6 +93,7 @@ impl eframe::App for App {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         self.header(ui);
         self.gallery(ui);
+        self.command_palette(ui.ctx());
 
         // Auto-screenshot helper for visual verification:
         // OXIDA_SCREENSHOT=path.png cargo run -p oxida-demo
@@ -123,6 +128,30 @@ impl eframe::App for App {
 }
 
 impl App {
+    /// Floating Command Palette handler (`Ctrl+K` / `⌘K`).
+    fn command_palette(&mut self, ctx: &egui::Context) {
+        if let Some(cmd) = CommandPalette::new(&mut self.palette_open)
+            .group("Ações Rápidas")
+            .item("novo_projeto", "Criar Novo Projeto", Some(icons::PLUS), Some("Ctrl+N"))
+            .item("salvar", "Salvar Modificações", Some(icons::FLOPPY_DISK), Some("Ctrl+S"))
+            .group("Navegação")
+            .item("configuracoes", "Abrir Painel de Configurações", Some(icons::GEAR_SIX), Some("Ctrl+,"))
+            .item("docs", "Guia & Documentação", Some(icons::BOOK_OPEN), Some("F1"))
+            .group("Aparência")
+            .item("alternar_tema", "Alternar Tema Claro / Escuro", Some(icons::MOON), Some("Ctrl+T"))
+            .show(ctx)
+        {
+            if cmd == "alternar_tema" {
+                self.dark = !self.dark;
+                self.theme = if self.dark { Theme::dark() } else { Theme::light() };
+                oxida::init(ctx, &self.theme);
+                self.last_action = "Alternou o tema via Command Palette".to_string();
+            } else {
+                self.last_action = format!("Comando executado: '{cmd}'");
+            }
+        }
+    }
+
     /// Fixed top bar: library name on the left, appearance switch on the right.
     fn header(&mut self, ui: &mut egui::Ui) {
         let theme = self.theme.clone();
@@ -188,10 +217,8 @@ impl App {
             )
             .show(ui, |ui| {
                 let mut scroll = egui::ScrollArea::vertical().auto_shrink([false, false]);
-                if let Ok(val) = std::env::var("OXIDA_SCROLL_Y") {
-                    if let Ok(y) = val.parse::<f32>() {
-                        scroll = scroll.vertical_scroll_offset(y);
-                    }
+                if let Some(y) = std::env::var("OXIDA_SCROLL_Y").ok().and_then(|v| v.parse::<f32>().ok()) {
+                    scroll = scroll.vertical_scroll_offset(y);
                 }
                 scroll.show(ui, |ui| {
                         let content_w = 480.0_f32.min(ui.available_width() - 36.0);
@@ -457,7 +484,72 @@ impl App {
                         // Divider ----------------------------------------------------
                         Separator::horizontal().spacing(36.0).ui(ui);
 
-                        // 7. Text Inputs ---------------------------------------------
+                        // 7. Produtividade & Navegação Desktop -----------------------
+                        section_header(ui, "Produtividade & Navegação Desktop", &theme);
+
+                        subhead(ui, "CAMPO DE BUSCA (SEARCH INPUT COM ÍCONES E CLEAR)", &theme);
+                        ui.allocate_ui_with_layout(
+                            egui::vec2(content_w, theme.metrics.control_height_md),
+                            egui::Layout::top_down(egui::Align::Min),
+                            |ui| {
+                                let s_resp = ui.oxida()
+                                    .search_input(&mut self.search_query)
+                                    .placeholder("Pesquisar na biblioteca...")
+                                    .shortcut("Ctrl+K")
+                                    .ui(ui);
+                                if s_resp.changed() {
+                                    self.last_action = format!("Buscando por: '{}'", self.search_query);
+                                }
+                            },
+                        );
+
+                        ui.add_space(14.0);
+                        subhead(ui, "TECLAS DE ATALHO VISUAIS (KBD)", &theme);
+                        ui.horizontal(|ui| {
+                            ui.spacing_mut().item_spacing.x = 8.0;
+                            Kbd::new("Ctrl").ui(ui);
+                            Kbd::shortcut("Ctrl", "K").ui(ui);
+                            Kbd::shortcut("⌘", "P").ui(ui);
+                            Kbd::keys(["Ctrl", "Shift", "F"]).ui(ui);
+                            Kbd::new("Esc").ui(ui);
+                            Kbd::new("Enter").ui(ui);
+                        });
+
+                        ui.add_space(14.0);
+                        subhead(ui, "TRILHA DE NAVEGAÇÃO (BREADCRUMBS)", &theme);
+                        if let Some(clicked) = Breadcrumbs::new()
+                            .item_with_icon(icons::HOUSE, "Início")
+                            .item("Oxida")
+                            .item("Componentes")
+                            .active("Navegação")
+                            .show(ui)
+                        {
+                            self.last_action = format!("Clicou no segmento {} dos Breadcrumbs", clicked + 1);
+                        }
+
+                        ui.add_space(14.0);
+                        subhead(ui, "COMMAND PALETTE (MODAL FLUTUANTE)", &theme);
+                        ui.horizontal(|ui| {
+                            ui.spacing_mut().item_spacing.x = 12.0;
+                            if Button::primary("Abrir Command Palette")
+                                .icon(icons::COMMAND)
+                                .ui(ui)
+                                .clicked()
+                            {
+                                self.palette_open = true;
+                            }
+                            ui.label(
+                                egui::RichText::new("ou pressione")
+                                    .size(theme.typography.sm)
+                                    .color(theme.palette.text_secondary),
+                            );
+                            Kbd::shortcut("Ctrl", "K").ui(ui);
+                        });
+
+                        // Divider ----------------------------------------------------
+                        Separator::horizontal().spacing(36.0).ui(ui);
+
+                        // 8. Text Inputs ---------------------------------------------
                         section_header(ui, "Campos de texto", &theme);
 
                         field_label(ui, "Nome completo", &theme);
@@ -488,7 +580,7 @@ impl App {
                         // Divider ----------------------------------------------------
                         divider(ui, &theme);
 
-                        // 3. Selects & Dropdown Menus (shadcn/ui style) --------------
+                        // 9. Selects & Dropdown Menus (shadcn/ui style) --------------
                         section_header(ui, "Seleção & Menus (Select & Dropdown)", &theme);
 
                         ui.horizontal(|ui| {
@@ -553,7 +645,7 @@ impl App {
                         // Divider ----------------------------------------------------
                         divider(ui, &theme);
 
-                        // 4. Seleção (Checkbox & Radio) ------------------------------
+                        // 10. Seleção (Checkbox & Radio) -----------------------------
                         section_header(ui, "Seleção (Checkbox & Radio)", &theme);
 
                         ui.horizontal(|ui| {
@@ -603,7 +695,7 @@ impl App {
                         // Divider ----------------------------------------------------
                         divider(ui, &theme);
 
-                        // 5. Sliders -------------------------------------------------
+                        // 11. Sliders ------------------------------------------------
                         section_header(ui, "Deslizadores (Sliders)", &theme);
 
                         ui.allocate_ui_with_layout(
@@ -629,7 +721,7 @@ impl App {
                         // Divider ----------------------------------------------------
                         divider(ui, &theme);
 
-                        // 6. Toggles -------------------------------------------------
+                        // 12. Toggles ------------------------------------------------
                         section_header(ui, "Interruptores (Toggles)", &theme);
 
                         ui.oxida()
@@ -646,7 +738,7 @@ impl App {
                         // Divider ----------------------------------------------------
                         divider(ui, &theme);
 
-                        // 7. Integração com egui nativo -----------------------------
+                        // 13. Integração com egui nativo ----------------------------
                         section_header(ui, "Integração nativa", &theme);
 
                         ui.horizontal(|ui| {

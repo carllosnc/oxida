@@ -39,7 +39,8 @@
 //!   apply with [`init`] (or [`Theme::apply`]).
 //! * [`widgets`] — the components: [`Button`](widgets::Button),
 //!   [`TextInput`](widgets::TextInput), [`Slider`](widgets::Slider),
-//!   [`Toggle`](widgets::Toggle).
+//!   [`Toggle`](widgets::Toggle), [`Kbd`](widgets::Kbd),
+//!   [`SearchInput`](widgets::SearchInput), [`CommandPalette`](widgets::CommandPalette), etc.
 //! * [`OxidaUi`] — the extension trait adding `Ui::oxida()`.
 
 mod style;
@@ -52,8 +53,9 @@ pub mod widgets;
 
 pub use theme::{Metrics, Palette, Theme, Typography};
 pub use widgets::{
-    Alert, AlertVariant, Avatar, AvatarStatus, Badge, BadgeVariant, Button, ButtonVariant, Card,
-    Checkbox, DropdownMenu, DropdownMenuUi, IconButton, Oxida, ProgressBar, Radio, Select,
+    Alert, AlertVariant, Avatar, AvatarStatus, Badge, BadgeVariant, BreadcrumbItem, Breadcrumbs,
+    Button, ButtonVariant, Card, Checkbox, CommandItem, CommandPalette, DropdownMenu, DropdownMenuUi,
+    IconButton, Kbd, Oxida, ProgressBar, Radio, SearchInput, SearchInputResponse, Select,
     SelectItem, Separator, SeparatorDirection, Size, Slider, Spinner, Tabs, TextInput, Toggle,
 };
 
@@ -95,9 +97,11 @@ pub mod prelude {
     pub use crate::icons;
     pub use crate::theme::{Metrics, Palette, Theme, Typography};
     pub use crate::widgets::{
-        Alert, AlertVariant, Avatar, AvatarStatus, Badge, BadgeVariant, Button, ButtonVariant, Card,
-        Checkbox, DropdownMenu, DropdownMenuUi, IconButton, Oxida, ProgressBar, Radio, Select,
-        SelectItem, Separator, SeparatorDirection, Size, Slider, Spinner, Tabs, TextInput, Toggle,
+        Alert, AlertVariant, Avatar, AvatarStatus, Badge, BadgeVariant, BreadcrumbItem, Breadcrumbs,
+        Button, ButtonVariant, Card, Checkbox, CommandItem, CommandPalette, DropdownMenu,
+        DropdownMenuUi, IconButton, Kbd, Oxida, ProgressBar, Radio, SearchInput,
+        SearchInputResponse, Select, SelectItem, Separator, SeparatorDirection, Size, Slider,
+        Spinner, Tabs, TextInput, Toggle,
     };
     pub use crate::{init, OxidaUi};
     pub use egui::Widget;

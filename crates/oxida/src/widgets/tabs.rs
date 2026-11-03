@@ -159,9 +159,7 @@ impl<'a, T: PartialEq + Clone + 'static> Widget for Tabs<'a, T> {
 
             // Draw text
             let galley = &tab_galleys[idx];
-            let text_color = if is_selected {
-                p.text_primary
-            } else if tab_resp.hovered() {
+            let text_color = if is_selected || tab_resp.hovered() {
                 p.text_primary
             } else {
                 p.text_secondary

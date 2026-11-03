@@ -6,7 +6,7 @@ use egui::{
 };
 
 use crate::theme;
-use crate::util::radius;
+use crate::util::{mix, radius};
 
 /// Dropdown menu builder and container styled after shadcn/ui.
 pub struct DropdownMenu<'a, R> {
@@ -244,7 +244,7 @@ impl DropdownMenuUi<'_> {
         } else if response.hovered() {
             p.text_primary
         } else {
-            p.text_primary
+            mix(p.text_primary, p.text_secondary, 0.25)
         };
 
         self.ui

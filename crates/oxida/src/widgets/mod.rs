@@ -3,13 +3,17 @@
 mod alert;
 mod avatar;
 mod badge;
+mod breadcrumbs;
 mod button;
 mod card;
 mod checkbox;
+mod command_palette;
 mod dropdown;
 mod icon_button;
+mod kbd;
 mod progress;
 mod radio;
+mod search_input;
 mod select;
 mod separator;
 mod slider;
@@ -20,13 +24,17 @@ mod toggle;
 pub use alert::{Alert, AlertVariant};
 pub use avatar::{Avatar, AvatarStatus};
 pub use badge::{Badge, BadgeVariant};
+pub use breadcrumbs::{BreadcrumbItem, Breadcrumbs};
 pub use button::{Button, ButtonVariant};
 pub use card::Card;
 pub use checkbox::Checkbox;
+pub use command_palette::{CommandItem, CommandPalette};
 pub use dropdown::{DropdownMenu, DropdownMenuUi};
 pub use icon_button::IconButton;
+pub use kbd::Kbd;
 pub use progress::{ProgressBar, Spinner};
 pub use radio::Radio;
+pub use search_input::{SearchInput, SearchInputResponse};
 pub use select::{Select, SelectItem};
 pub use separator::{Separator, SeparatorDirection};
 pub use slider::Slider;
@@ -150,6 +158,26 @@ impl<'a> Oxida<'a> {
     /// Themed badge / tag chip.
     pub fn badge(self, text: impl Into<WidgetText>) -> Response {
         Badge::new(text).ui(self.ui)
+    }
+
+    /// Themed keyboard shortcut badge (`<kbd>`).
+    pub fn kbd(self, key: impl Into<String>) -> Response {
+        Kbd::new(key).ui(self.ui)
+    }
+
+    /// Themed search input with magnifying glass, clear button and shortcut.
+    pub fn search_input<'t>(self, text: &'t mut String) -> SearchInput<'t> {
+        SearchInput::new(text)
+    }
+
+    /// Themed breadcrumbs navigation trail.
+    pub fn breadcrumbs(self) -> Breadcrumbs {
+        Breadcrumbs::new()
+    }
+
+    /// Themed Command Palette overlay builder (`Ctrl+K` / `⌘K`).
+    pub fn command_palette<'b>(self, open: &'b mut bool) -> CommandPalette<'b> {
+        CommandPalette::new(open)
     }
 
     /// Themed horizontal separator / divider.
