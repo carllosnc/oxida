@@ -1,8 +1,10 @@
 //! The Oxida widget set and the `ui.oxida()` builder entry point.
 
+mod accordion;
 mod alert;
 mod avatar;
 mod badge;
+mod block_slider;
 mod breadcrumbs;
 mod button;
 mod card;
@@ -21,13 +23,15 @@ mod tabs;
 mod text_input;
 mod toggle;
 
+pub use accordion::{Accordion, AccordionGroup, AccordionResponse, AccordionVariant};
 pub use alert::{Alert, AlertVariant};
 pub use avatar::{Avatar, AvatarStatus};
 pub use badge::{Badge, BadgeVariant};
+pub use block_slider::BlockSlider;
 pub use breadcrumbs::{BreadcrumbItem, Breadcrumbs};
 pub use button::{Button, ButtonVariant};
 pub use card::Card;
-pub use checkbox::Checkbox;
+pub use checkbox::{Checkbox, CheckboxState};
 pub use command_palette::{CommandItem, CommandPalette};
 pub use dropdown::{DropdownMenu, DropdownMenuUi};
 pub use icon_button::IconButton;
@@ -47,12 +51,12 @@ use egui::{Response, Ui, Widget, WidgetText};
 /// Control size shared by the widgets.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Size {
-    /// Compact: dense toolbars, badges.
+    /// Compact: dense toolbars, badges (30 px row / small icons).
     Sm,
-    /// Default control size.
+    /// Default control size (38 px row / standard buttons).
     #[default]
     Md,
-    /// Large: prominent/primary controls.
+    /// Large: prominent/primary controls (46 px row).
     Lg,
 }
 
@@ -116,17 +120,31 @@ impl<'a> Oxida<'a> {
         Slider::new(value, range)
     }
 
+    /// Themed block slider / filled scrubber pill bound to `value`.
+    pub fn block_slider<'v>(
+        self,
+        value: &'v mut f32,
+        range: std::ops::RangeInclusive<f32>,
+    ) -> BlockSlider<'v> {
+        BlockSlider::new(value, range)
+    }
+
     /// Themed on/off switch bound to `value`.
     pub fn toggle<'v>(self, value: &'v mut bool) -> Toggle<'v> {
         Toggle::new(value)
     }
 
-    /// Themed Checkbox styled after shadcn/ui.
+    /// Themed Checkbox styled after modern desktop HIG.
     pub fn checkbox<'v>(self, checked: &'v mut bool, label: impl Into<WidgetText>) -> Checkbox<'v> {
         Checkbox::new(checked).label(label)
     }
 
-    /// Themed Radio button styled after shadcn/ui.
+    /// Themed Checkbox bound to a tri-state [`CheckboxState`].
+    pub fn checkbox_state<'v>(self, state: &'v mut CheckboxState, label: impl Into<WidgetText>) -> Checkbox<'v> {
+        Checkbox::state(state).label(label)
+    }
+
+    /// Themed Radio button styled after modern desktop HIG.
     pub fn radio<'v, T: PartialEq + 'static>(
         self,
         current_value: &'v mut T,
@@ -198,5 +216,10 @@ impl<'a> Oxida<'a> {
     /// Themed user avatar with initials.
     pub fn avatar(self, name: &str) -> Response {
         Avatar::initials(name).ui(self.ui)
+    }
+
+    /// Themed expandable/collapsible accordion section.
+    pub fn accordion(self, title: impl Into<WidgetText>) -> Accordion<'static> {
+        Accordion::new(title)
     }
 }
