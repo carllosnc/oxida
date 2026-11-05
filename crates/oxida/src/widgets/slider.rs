@@ -231,17 +231,8 @@ impl Widget for Slider<'_> {
                 Color32::from_black_alpha(40),
             );
         }
-        let knob_fill = if enabled {
-            p.surface
-        } else {
-            crate::util::dim(p.surface, p.window_bg, 0.5)
-        };
-        let knob_stroke = if enabled {
-            Stroke::new(m.border_width, p.border_strong)
-        } else {
-            Stroke::new(m.border_width, p.border)
-        };
-        painter.circle(knob_center, knob_r, knob_fill, knob_stroke);
+        let knob_fill = fill_color;
+        painter.circle(knob_center, knob_r, knob_fill, Stroke::NONE);
 
         // Label + value.
         if let Some(g) = label_galley {
