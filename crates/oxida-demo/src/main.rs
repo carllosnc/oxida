@@ -52,12 +52,20 @@ struct App {
     accept_terms: bool,
     marketing_emails: bool,
     disabled_check: bool,
+    mixed_check: CheckboxState,
+    switch_sm: bool,
+    switch_md: bool,
+    btn_loading: bool,
     plan_tier: usize,
     volume: f32,
     speed: f32,
+    block_slider_a: f32,
+    block_slider_b: f32,
     notifications: bool,
     newsletter: bool,
     agree: bool,
+    accordion_exclusive: Option<usize>,
+    accordion_card_open: bool,
 }
 
 impl Default for App {
@@ -79,12 +87,20 @@ impl Default for App {
             accept_terms: true,
             marketing_emails: false,
             disabled_check: true,
+            mixed_check: CheckboxState::Mixed,
+            switch_sm: false,
+            switch_md: true,
+            btn_loading: true,
             plan_tier: 1,
             volume: 80.0,
             speed: 1.2,
+            block_slider_a: 90.0,
+            block_slider_b: 50.0,
             notifications: true,
             newsletter: false,
             agree: true,
+            accordion_exclusive: Some(0),
+            accordion_card_open: true,
         }
     }
 }
@@ -235,6 +251,60 @@ impl App {
                 scroll.show(ui, |ui| {
                         let content_w = 480.0_f32.min(ui.available_width() - 36.0);
 
+                        // 0. Fundamentos (Figma Spec) --------------------------------
+                        section_header(ui, "Fundamentos do Tema (Figma Spec)", &theme);
+
+                        ui.label(
+                            egui::RichText::new("Uma base compacta para interfaces desktop. Tokens primeiro, consistência em cada componente.")
+                                .size(theme.typography.sm)
+                                .color(theme.palette.text_secondary),
+                        );
+                        ui.add_space(10.0);
+
+                        subhead(ui, "CORES SEMÂNTICAS", &theme);
+                        ui.horizontal_wrapped(|ui| {
+                            ui.spacing_mut().item_spacing = egui::vec2(8.0, 8.0);
+                            let swatches = [
+                                ("canvas", theme.palette.window_bg, if theme.dark_mode { "#141416" } else { "#FAFAFA" }),
+                                ("surface", theme.palette.surface, if theme.dark_mode { "#1C1C1F" } else { "#FFFFFF" }),
+                                ("raised", theme.palette.popover, if theme.dark_mode { "#242427" } else { "#FFFFFF" }),
+                                ("border", theme.palette.border, if theme.dark_mode { "#4B4B51" } else { "#E4E4E7" }),
+                                ("subtle", theme.palette.border_subtle, if theme.dark_mode { "#303034" } else { "#F0F0F3" }),
+                                ("primary", theme.palette.text_primary, if theme.dark_mode { "#F5F5F7" } else { "#18181B" }),
+                                ("secondary", theme.palette.text_secondary, if theme.dark_mode { "#A7A7B1" } else { "#71717A" }),
+                                ("disabled", theme.palette.text_disabled, if theme.dark_mode { "#85858F" } else { "#A1A1AA" }),
+                                ("focus/ring", theme.palette.focus_ring, if theme.dark_mode { "#B6A4FF" } else { "#7C3AED" }),
+                                ("success", theme.palette.success, if theme.dark_mode { "#73D6A4" } else { "#16A374" }),
+                                ("warning", theme.palette.warning, if theme.dark_mode { "#F1CA72" } else { "#D97706" }),
+                                ("error", theme.palette.danger, if theme.dark_mode { "#AD2838" } else { "#DC2626" }),
+                            ];
+                            for (name, color, hex) in swatches {
+                                ui.vertical(|ui| {
+                                    let (rect, _) = ui.allocate_exact_size(egui::vec2(76.0, 36.0), egui::Sense::hover());
+                                    ui.painter().rect_filled(rect, egui::CornerRadius::same(6), color);
+                                    ui.painter().rect_stroke(rect, egui::CornerRadius::same(6), egui::Stroke::new(1.0, theme.palette.border_subtle), egui::StrokeKind::Inside);
+                                    ui.label(egui::RichText::new(name).size(11.0).color(theme.palette.text_primary));
+                                    ui.label(egui::RichText::new(hex).size(10.0).color(theme.palette.text_secondary));
+                                });
+                            }
+                        });
+
+                        ui.add_space(14.0);
+                        subhead(ui, "ESPAÇAMENTOS DESKTOP", &theme);
+                        ui.horizontal(|ui| {
+                            ui.spacing_mut().item_spacing.x = 12.0;
+                            for sp in [2, 4, 8, 12, 16, 24, 32, 48] {
+                                ui.vertical(|ui| {
+                                    ui.label(egui::RichText::new(format!("{sp}px")).size(11.0).color(theme.palette.text_secondary));
+                                    let (rect, _) = ui.allocate_exact_size(egui::vec2(sp as f32, 8.0), egui::Sense::hover());
+                                    ui.painter().rect_filled(rect, egui::CornerRadius::same(2), theme.palette.accent);
+                                });
+                            }
+                        });
+
+                        // Divider ----------------------------------------------------
+                        Separator::horizontal().spacing(36.0).ui(ui);
+
                         // 1. Buttons -------------------------------------------------
                         section_header(ui, "Botões (Buttons)", &theme);
 
@@ -299,13 +369,14 @@ impl App {
                         });
 
                         ui.add_space(14.0);
-                        subhead(ui, "TAMANHOS E ESTADOS", &theme);
+                        subhead(ui, "TAMANHOS E ESTADOS (4 HIERARQUIAS × 2 TAMANHOS × ESTADOS)", &theme);
                         ui.horizontal(|ui| {
                             ui.spacing_mut().item_spacing.x = 10.0;
-                            Button::new("Pequeno").size(Size::Sm).ui(ui);
-                            Button::new("Médio").size(Size::Md).ui(ui);
-                            Button::new("Grande").size(Size::Lg).ui(ui);
-                            Button::new("Desabilitado").enabled(false).ui(ui);
+                            Button::primary("Small (30 px)").size(Size::Sm).ui(ui);
+                            Button::primary("Medium (38 px)").size(Size::Md).ui(ui);
+                            Button::primary("Carregando").loading(self.btn_loading).size(Size::Md).ui(ui);
+                            Button::danger("Destrutivo Sm").size(Size::Sm).ui(ui);
+                            Button::primary("Desabilitado").enabled(false).ui(ui);
                         });
 
                         ui.add_space(14.0);
@@ -355,7 +426,7 @@ impl App {
                         subhead(ui, "NAVEGAÇÃO EM SEGMENTOS", &theme);
                         Tabs::new(&mut self.selected_tab, ["Visão Geral", "Métricas", "Notificações", "Avançado"]).ui(ui);
 
-                        ui.add_space(8.0);
+                        ui.add_space(14.0);
                         ui.label(
                             egui::RichText::new(format!(
                                 "Aba ativa: {}",
@@ -399,6 +470,94 @@ impl App {
                                             self.last_action = "Clicou em Ver Faturas no Card".into();
                                         }
                                     });
+                                });
+                            },
+                        );
+
+                        // Divider ----------------------------------------------------
+                        Separator::horizontal().spacing(36.0).ui(ui);
+
+                        // 5. Acordeões (Accordions & Collapsibles) -------------------
+                        section_header(ui, "Acordeões & Seções Expansíveis (Accordions)", &theme);
+
+                        subhead(ui, "ESTILO MINIMALISTA (SHADCN / LINEAR)", &theme);
+                        ui.allocate_ui_with_layout(
+                            egui::vec2(content_w, 0.0),
+                            egui::Layout::top_down(egui::Align::Min),
+                            |ui| {
+                                Accordion::new("Como funciona o design de superfícies suaves?")
+                                    .default_open(true)
+                                    .show(ui, |ui| {
+                                        ui.label("O Oxida prioriza superfícies suaves (soft surfaces) e contraste tonal em vez de bordas rígidas, garantindo um visual contemporâneo para aplicativos desktop.");
+                                    });
+
+                                Accordion::new("Como customizar os tokens semânticos?")
+                                    .show(ui, |ui| {
+                                        ui.label("Basta criar uma instância de Theme::dark() ou Theme::light() e alterar as cores de theme.palette ou os raios de theme.metrics antes de inicializar com oxida::init.");
+                                    });
+
+                                Accordion::new("Navegação completa por teclado")
+                                    .badge("Acessibilidade")
+                                    .show(ui, |ui| {
+                                        ui.label("Pressione Tab para focar no cabeçalho, Enter/Espaço para alternar o estado, ou as setas Esquerda/Direita para recolher ou expandir.");
+                                    });
+                            },
+                        );
+
+                        ui.add_space(16.0);
+                        subhead(ui, "VARIANTE CARTÃO COM ÍCONES E BADGES", &theme);
+                        ui.allocate_ui_with_layout(
+                            egui::vec2(content_w, 0.0),
+                            egui::Layout::top_down(egui::Align::Min),
+                            |ui| {
+                                Accordion::card("Segurança & Autenticação em Duas Etapas")
+                                    .subtitle("Proteja sua conta com chaves de segurança físicas ou TOTP")
+                                    .icon(icons::SHIELD_CHECK)
+                                    .badge("Recomendado")
+                                    .open(&mut self.accordion_card_open)
+                                    .show(ui, |ui| {
+                                        ui.horizontal(|ui| {
+                                            Toggle::new(&mut self.notifications).ui(ui);
+                                            ui.label("Exigir confirmação biométrica em ações sensíveis");
+                                        });
+                                        ui.add_space(8.0);
+                                        ui.horizontal(|ui| {
+                                            if Button::secondary("Configurar Passkeys").size(Size::Sm).ui(ui).clicked() {
+                                                self.last_action = "Clicou em Configurar Passkeys".into();
+                                            }
+                                        });
+                                    });
+
+                                ui.add_space(10.0);
+                                Accordion::card("Notificações e Resumos Diários")
+                                    .subtitle("Escolha a frequência e os canais de alerta")
+                                    .icon(icons::BELL)
+                                    .show(ui, |ui| {
+                                        ui.horizontal(|ui| {
+                                            Checkbox::new(&mut self.agree).label("Receber resumo matinal").ui(ui);
+                                        });
+                                    });
+                            },
+                        );
+
+                        ui.add_space(16.0);
+                        subhead(ui, "GRUPO EXCLUSIVO (APENAS 1 ABERTO POR VEZ)", &theme);
+                        ui.allocate_ui_with_layout(
+                            egui::vec2(content_w, 0.0),
+                            egui::Layout::top_down(egui::Align::Min),
+                            |ui| {
+                                let mut group = AccordionGroup::new(&mut self.accordion_exclusive);
+
+                                group.item(0, "1. Detalhes da Conta", ui, |ui| {
+                                    ui.label("Gerencie seu nome de usuário, e-mail de recuperação e avatar.");
+                                });
+
+                                group.item(1, "2. Faturamento e Cobrança", ui, |ui| {
+                                    ui.label("Visualize seu histórico de faturas, cartões de crédito e plano atual.");
+                                });
+
+                                group.item(2, "3. Preferências de Interface", ui, |ui| {
+                                    ui.label("Ajuste a densidade dos elementos, tamanho de fontes e tema do sistema.");
                                 });
                             },
                         );
@@ -657,29 +816,36 @@ impl App {
                         // Divider ----------------------------------------------------
                         Separator::horizontal().spacing(36.0).ui(ui);
 
-                        // 10. Seleção (Checkbox & Radio) -----------------------------
-                        section_header(ui, "Seleção (Checkbox & Radio)", &theme);
+                        // 10. Seleção (Checkbox, Radio & Switch) ---------------------
+                        section_header(ui, "Controles de Seleção (Figma Spec)", &theme);
 
                         ui.horizontal(|ui| {
-                            ui.spacing_mut().item_spacing.x = 48.0;
+                            ui.spacing_mut().item_spacing.x = 36.0;
 
                             // Coluna de Checkboxes
                             ui.vertical(|ui| {
-                                subhead(ui, "CHECKBOXES", &theme);
+                                subhead(ui, "CHECKBOX (3 ESTADOS · SM & MD)", &theme);
                                 ui.oxida()
                                     .checkbox(
                                         &mut self.accept_terms,
-                                        "Aceito os termos de serviço e privacidade",
+                                        "Aceito os termos (Md · 38 px)",
                                     )
+                                    .size(Size::Md)
                                     .ui(ui);
-                                ui.add_space(8.0);
+                                ui.add_space(4.0);
                                 ui.oxida()
                                     .checkbox(
                                         &mut self.marketing_emails,
-                                        "Receber novidades e alertas por e-mail",
+                                        "Alertas por e-mail (Sm · 30 px)",
                                     )
+                                    .size(Size::Sm)
                                     .ui(ui);
-                                ui.add_space(8.0);
+                                ui.add_space(4.0);
+                                ui.oxida()
+                                    .checkbox_state(&mut self.mixed_check, "Seleção mista (Mixed)")
+                                    .size(Size::Md)
+                                    .ui(ui);
+                                ui.add_space(4.0);
                                 Checkbox::new(&mut self.disabled_check)
                                     .label("Opção desabilitada")
                                     .enabled(false)
@@ -688,17 +854,40 @@ impl App {
 
                             // Coluna de Radio buttons
                             ui.vertical(|ui| {
-                                subhead(ui, "PLANOS (RADIO)", &theme);
+                                subhead(ui, "RADIO (ESCOLHA ÚNICA)", &theme);
                                 ui.oxida()
-                                    .radio(&mut self.plan_tier, 0, "Plano Starter (Gratuito)")
+                                    .radio(&mut self.plan_tier, 0, "Starter (Sm · 30 px)")
+                                    .size(Size::Sm)
                                     .ui(ui);
-                                ui.add_space(8.0);
+                                ui.add_space(4.0);
                                 ui.oxida()
-                                    .radio(&mut self.plan_tier, 1, "Plano Pro (R$ 49/mês)")
+                                    .radio(&mut self.plan_tier, 1, "Pro (Md · 38 px)")
+                                    .size(Size::Md)
                                     .ui(ui);
-                                ui.add_space(8.0);
+                                ui.add_space(4.0);
                                 Radio::new(&mut self.plan_tier, 2)
-                                    .label("Plano Enterprise (Sob consulta)")
+                                    .label("Enterprise (Desabilitado)")
+                                    .enabled(false)
+                                    .ui(ui);
+                            });
+
+                            // Coluna de Switches
+                            ui.vertical(|ui| {
+                                subhead(ui, "SWITCH / TOGGLE", &theme);
+                                ui.oxida()
+                                    .toggle(&mut self.switch_sm)
+                                    .size(Size::Sm)
+                                    .label("Ativar recurso (Sm)")
+                                    .ui(ui);
+                                ui.add_space(4.0);
+                                ui.oxida()
+                                    .toggle(&mut self.switch_md)
+                                    .size(Size::Md)
+                                    .label("Ativar recurso (Md)")
+                                    .ui(ui);
+                                ui.add_space(4.0);
+                                Toggle::new(&mut false)
+                                    .label("Desabilitado")
                                     .enabled(false)
                                     .ui(ui);
                             });
@@ -710,8 +899,9 @@ impl App {
                         // 11. Sliders ------------------------------------------------
                         section_header(ui, "Deslizadores (Sliders)", &theme);
 
+                        subhead(ui, "SLIDERS CLÁSSICOS", &theme);
                         ui.allocate_ui_with_layout(
-                            egui::vec2(content_w, theme.metrics.control_height_md),
+                            egui::vec2(content_w, 0.0),
                             egui::Layout::top_down(egui::Align::Min),
                             |ui| {
                                 ui.oxida()
@@ -727,6 +917,18 @@ impl App {
                                     .step(0.1)
                                     .suffix("x")
                                     .ui(ui);
+                            },
+                        );
+
+                        ui.add_space(14.0);
+                        subhead(ui, "SLIDERS EM BLOCO (BLOCK SLIDERS / SCRUBBERS)", &theme);
+                        ui.allocate_ui_with_layout(
+                            egui::vec2(content_w, 0.0),
+                            egui::Layout::top_down(egui::Align::Min),
+                            |ui| {
+                                BlockSlider::percentage(&mut self.block_slider_a).ui(ui);
+                                ui.add_space(10.0);
+                                BlockSlider::percentage(&mut self.block_slider_b).ui(ui);
                             },
                         );
 
