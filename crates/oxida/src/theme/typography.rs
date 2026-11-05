@@ -9,16 +9,18 @@ use egui::{FontFamily, FontId, TextStyle};
 /// `Heading` → [`Typography::lg`], `Monospace` → [`Typography::sm`].
 #[derive(Clone, Debug, PartialEq)]
 pub struct Typography {
-    /// Extra small: captions, badges, table headers.
+    /// Extra small: captions, badges, table headers (12 px).
     pub xs: f32,
-    /// Small: secondary text, value readouts.
+    /// Small: secondary text, labels, value readouts (13 px).
     pub sm: f32,
-    /// Medium: body text, buttons, inputs (the default).
+    /// Medium: body text, inputs (14 px, the default).
     pub md: f32,
-    /// Large: section titles.
+    /// Large: section headings (24 px).
     pub lg: f32,
-    /// Title: page/window titles.
+    /// Title: page/window titles (28 px).
     pub title: f32,
+    /// Display: hero display text (36 px).
+    pub display: f32,
     /// Font family used for [`TextStyle::Heading`].
     ///
     /// Defaults to the bundled Inter SemiBold
@@ -26,7 +28,7 @@ pub struct Typography {
     pub heading_family: egui::FontFamily,
     /// Font family used for [`TextStyle::Button`] and every button label.
     ///
-    /// Defaults to the proportional font (Inter Regular).
+    /// Defaults to Inter Medium ([`crate::fonts::MEDIUM`]).
     pub button_family: egui::FontFamily,
 }
 
@@ -38,6 +40,7 @@ impl Default for Typography {
             md: 14.0,
             lg: 24.0,
             title: 28.0,
+            display: 36.0,
             heading_family: egui::FontFamily::Name(crate::fonts::SEMI_BOLD.into()),
             button_family: egui::FontFamily::Name(crate::fonts::MEDIUM.into()),
         }
@@ -55,12 +58,17 @@ impl Typography {
         FontId::new(px, FontFamily::Proportional)
     }
 
-    /// Font for page and window titles.
+    /// Font for hero display text (36 px SemiBold).
+    pub fn display_font(&self) -> FontId {
+        FontId::new(self.display, self.heading_family.clone())
+    }
+
+    /// Font for page and window titles (28 px Bold).
     pub fn title_font(&self) -> FontId {
         FontId::new(self.title, egui::FontFamily::Name(crate::fonts::BOLD.into()))
     }
 
-    /// Font for section titles.
+    /// Font for section headings (24 px SemiBold).
     pub fn heading_font(&self) -> FontId {
         FontId::new(self.lg, self.heading_family.clone())
     }
@@ -70,7 +78,7 @@ impl Typography {
         [
             (TextStyle::Small, FontId::new(self.xs, FontFamily::Proportional)),
             (TextStyle::Body, FontId::new(self.md, FontFamily::Proportional)),
-            (TextStyle::Button, FontId::new(self.md, self.button_family.clone())),
+            (TextStyle::Button, FontId::new(self.sm, self.button_family.clone())),
             (
                 TextStyle::Heading,
                 FontId::new(self.lg, self.heading_family.clone()),
