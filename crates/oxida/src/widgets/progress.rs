@@ -33,7 +33,7 @@ impl ProgressBar {
         }
     }
 
-    /// Custom height in pixels. Defaults to `8.0`.
+    /// Custom height in pixels. Defaults to `6.0`.
     pub fn height(mut self, height: f32) -> Self {
         self.height = Some(height);
         self
@@ -51,7 +51,7 @@ impl Widget for ProgressBar {
         let theme = theme::current(ui.ctx());
         let p = &theme.palette;
 
-        let height = self.height.unwrap_or(8.0);
+        let height = self.height.unwrap_or(6.0);
         let fill_color = self.fill.unwrap_or(p.accent);
 
         let width = ui.available_width().max(40.0);
