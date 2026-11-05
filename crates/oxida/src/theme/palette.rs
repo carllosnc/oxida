@@ -21,6 +21,8 @@ pub struct Palette {
     pub subtle: Color32,
     /// Default border color (used for dividers and separators).
     pub border: Color32,
+    /// Subtle border color for soft surfaces and cards.
+    pub border_subtle: Color32,
     /// Stronger border, used for active dividers.
     pub border_strong: Color32,
 
@@ -30,6 +32,9 @@ pub struct Palette {
     pub text_secondary: Color32,
     /// Text color for disabled controls.
     pub text_disabled: Color32,
+
+    /// Keyboard focus ring highlight.
+    pub focus_ring: Color32,
 
     /// Brand/primary accent (primary buttons, focus, selection).
     pub accent: Color32,
@@ -63,11 +68,14 @@ impl Palette {
             field_bg: Color32::from_rgb(242, 242, 245),
             subtle: Color32::from_rgb(235, 235, 239),
             border: Color32::from_rgb(228, 228, 231),
+            border_subtle: Color32::from_rgb(240, 240, 243),
             border_strong: Color32::from_rgb(161, 161, 170),
 
             text_primary: Color32::from_rgb(24, 24, 27),
             text_secondary: Color32::from_rgb(113, 113, 122),
             text_disabled: Color32::from_rgb(161, 161, 170),
+
+            focus_ring: Color32::from_rgb(124, 58, 237),
 
             accent: Color32::from_rgb(24, 24, 27),
             accent_hover: Color32::from_rgb(63, 63, 70),
@@ -83,32 +91,35 @@ impl Palette {
         }
     }
 
-    /// A clean, neutral dark palette with soft contrasting surfaces.
+    /// A clean, neutral dark palette aligned with Oxida design system foundations.
     pub fn dark() -> Self {
         Self {
-            window_bg: Color32::from_rgb(16, 16, 18),
-            surface: Color32::from_rgb(24, 24, 27),
-            popover: Color32::from_rgb(36, 36, 42),
-            field_bg: Color32::from_rgb(32, 32, 36),
-            subtle: Color32::from_rgb(48, 48, 54),
-            border: Color32::from_rgb(48, 48, 54),
-            border_strong: Color32::from_rgb(85, 85, 92),
+            window_bg: Color32::from_rgb(0x14, 0x14, 0x16),     // #141416 - background/canvas
+            surface: Color32::from_rgb(0x1C, 0x1C, 0x1F),       // #1C1C1F - surface/default
+            popover: Color32::from_rgb(0x24, 0x24, 0x27),       // #242427 - surface/raised
+            field_bg: Color32::from_rgb(0x1C, 0x1C, 0x1F),      // #1C1C1F
+            subtle: Color32::from_rgb(0x24, 0x24, 0x27),        // #242427
+            border: Color32::from_rgb(0x4B, 0x4B, 0x51),        // #4B4B51 - border/default
+            border_subtle: Color32::from_rgb(0x30, 0x30, 0x34), // #303034 - border/subtle
+            border_strong: Color32::from_rgb(0x71, 0x71, 0x7A),
 
-            text_primary: Color32::from_rgb(228, 228, 231),
-            text_secondary: Color32::from_rgb(161, 161, 170),
-            text_disabled: Color32::from_rgb(113, 113, 122),
+            text_primary: Color32::from_rgb(0xF5, 0xF5, 0xF7),   // #F5F5F7 - text/primary
+            text_secondary: Color32::from_rgb(0xA7, 0xA7, 0xB1), // #A7A7B1 - text/secondary
+            text_disabled: Color32::from_rgb(0x85, 0x85, 0x8F),  // #85858F - text/disabled
 
-            accent: Color32::from_rgb(228, 228, 231),
-            accent_hover: Color32::from_rgb(244, 244, 245),
-            accent_active: Color32::from_rgb(255, 255, 255),
-            on_accent: Color32::from_rgb(24, 24, 27),
+            focus_ring: Color32::from_rgb(0xB6, 0xA4, 0xFF),     // #B6A4FF - focus/ring
 
-            danger: Color32::from_rgb(248, 113, 113),
-            danger_hover: Color32::from_rgb(254, 160, 160),
-            on_danger: Color32::from_rgb(24, 24, 27),
+            accent: Color32::from_rgb(0xF5, 0xF5, 0xF7),
+            accent_hover: Color32::from_rgb(0xFF, 0xFF, 0xFF),
+            accent_active: Color32::from_rgb(0xE4, 0xE4, 0xE7),
+            on_accent: Color32::from_rgb(0x14, 0x14, 0x16),
 
-            success: Color32::from_rgb(74, 222, 128),
-            warning: Color32::from_rgb(251, 146, 60),
+            danger: Color32::from_rgb(0xAD, 0x28, 0x38),         // #AD2838 - button/destructive
+            danger_hover: Color32::from_rgb(0xC4, 0x32, 0x44),
+            on_danger: Color32::from_rgb(0xFF, 0xFF, 0xFF),
+
+            success: Color32::from_rgb(0x73, 0xD6, 0xA4),        // #73D6A4 - status/success
+            warning: Color32::from_rgb(0xF1, 0xCA, 0x72),        // #F1CA72 - status/warning
         }
     }
 }
