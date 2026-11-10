@@ -24,7 +24,7 @@
 //! }
 //! ```
 //!
-//! Apply a theme at startup (e.g. inside your `eframe::App` creation closure):
+//! Apply a theme at startup:
 //!
 //! ```
 //! use oxida::Theme;
@@ -32,32 +32,21 @@
 //! let ctx = egui::Context::default();
 //! oxida::init(&ctx, &Theme::dark());
 //! ```
-//!
-//! ## Architecture
-//!
-//! * [`Theme`] — design tokens ([`Palette`], [`Typography`], [`Metrics`]);
-//!   apply with [`init`] (or [`Theme::apply`]).
-//! * [`widgets`] — the components: [`Button`](widgets::Button),
-//!   [`TextInput`](widgets::TextInput), [`Slider`](widgets::Slider),
-//!   [`Toggle`](widgets::Toggle), [`Checkbox`](widgets::Checkbox),
-//!   [`Radio`](widgets::Radio), [`Kbd`](widgets::Kbd),
-//!   [`SearchInput`](widgets::SearchInput), [`CommandPalette`](widgets::CommandPalette), etc.
-//! * [`OxidaUi`] — the extension trait adding `Ui::oxida()`.
-
-mod style;
-mod util;
 
 pub mod fonts;
 pub mod icons;
+pub mod style;
 pub mod theme;
+pub mod util;
 pub mod widgets;
 
 pub use theme::{Metrics, Palette, Theme, Typography};
 pub use widgets::{
     Accordion, AccordionGroup, AccordionResponse, AccordionVariant,
     Alert, AlertVariant, Avatar, AvatarStatus, Badge, BadgeVariant, BlockSlider, BreadcrumbItem, Breadcrumbs,
-    Button, ButtonVariant, Card, Checkbox, CheckboxState, CommandItem, CommandPalette, DropdownMenu, DropdownMenuUi,
-    IconButton, Kbd, Oxida, ProgressBar, Radio, SearchInput, SearchInputResponse, Select,
+    Button, ButtonVariant, Card, Checkbox, CheckboxState, CommandItem, CommandPalette,
+    ContextMenu, DropdownMenu, DropdownMenuUi, MenuDensity, MenuItem, MenuItemState, MenuItemType,
+    MenuPanel, IconButton, Kbd, Oxida, ProgressBar, Radio, SearchInput, SearchInputResponse, Select,
     SelectItem, Separator, SeparatorDirection, Size, Slider, Spinner, Tabs, TextInput, Toggle,
 };
 
@@ -101,8 +90,9 @@ pub mod prelude {
     pub use crate::widgets::{
         Accordion, AccordionGroup, AccordionResponse, AccordionVariant,
         Alert, AlertVariant, Avatar, AvatarStatus, Badge, BadgeVariant, BlockSlider, BreadcrumbItem, Breadcrumbs,
-        Button, ButtonVariant, Card, Checkbox, CheckboxState, CommandItem, CommandPalette, DropdownMenu,
-        DropdownMenuUi, IconButton, Kbd, Oxida, ProgressBar, Radio, SearchInput,
+        Button, ButtonVariant, Card, Checkbox, CheckboxState, CommandItem, CommandPalette,
+        ContextMenu, DropdownMenu, DropdownMenuUi, MenuDensity, MenuItem, MenuItemState, MenuItemType,
+        MenuPanel, IconButton, Kbd, Oxida, ProgressBar, Radio, SearchInput,
         SearchInputResponse, Select, SelectItem, Separator, SeparatorDirection, Size, Slider,
         Spinner, Tabs, TextInput, Toggle,
     };

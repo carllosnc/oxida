@@ -785,22 +785,88 @@ impl App {
                                     .ui(ui);
                             });
 
-                            // Dropdown Menu
+                            // Dropdown Menu (Comfortable 38 px)
                             ui.vertical(|ui| {
-                                field_label(ui, "Ações rápidas", &theme);
+                                field_label(ui, "Dropdown (38 px)", &theme);
                                 let action = &mut self.last_action;
-                                ui.oxida().dropdown_menu("menu_acoes", "Opções", |menu| {
-                                    menu.header("GERENCIAMENTO");
-                                    if menu.item("Configurações do projeto").clicked() {
-                                        *action = "Abriu configurações".to_string();
+                                ui.oxida().dropdown_menu("menu_acoes_comfort", "Opções", |menu| {
+                                    menu.set_density(MenuDensity::Comfortable);
+                                    menu.header("DOCUMENTO");
+                                    if menu.item_with("Novo documento", Some(icons::FILE_TEXT), Some("Ctrl+N")).clicked() {
+                                        *action = "Novo documento".to_string();
                                     }
-                                    if menu.item("Duplicar repositório").clicked() {
-                                        *action = "Duplicou repositório".to_string();
+                                    if menu.item_with("Abrir documento", Some(icons::FILE_TEXT), Some("Ctrl+O")).clicked() {
+                                        *action = "Abrir documento".to_string();
                                     }
-                                    menu.disabled_item("Sincronização em nuvem");
+                                    if menu.item_with("Duplicar", Some(icons::FILE_TEXT), Some("Ctrl+D")).clicked() {
+                                        *action = "Duplicar documento".to_string();
+                                    }
                                     menu.separator();
-                                    if menu.danger_item("Excluir projeto").clicked() {
-                                        *action = "Excluiu projeto!".to_string();
+                                    menu.submenu_item("Exportar", Some(icons::FILE_TEXT));
+                                    menu.submenu_item("Mover para...", Some(icons::FILE_TEXT));
+                                    menu.separator();
+                                    if menu.danger_item_with("Excluir", Some(icons::TRASH), Some("Del")).clicked() {
+                                        *action = "Excluiu documento!".to_string();
+                                    }
+                                });
+                            });
+
+                            // Dropdown Menu (Compact 30 px)
+                            ui.vertical(|ui| {
+                                field_label(ui, "Dropdown (30 px)", &theme);
+                                let action = &mut self.last_action;
+                                ui.oxida()
+                                    .dropdown_menu_builder("menu_acoes_compact", "Compacto", |menu| {
+                                        menu.set_density(MenuDensity::Compact);
+                                        menu.header("DOCUMENTO");
+                                        if menu.item_with("Novo documento", Some(icons::FILE_TEXT), Some("Ctrl+N")).clicked() {
+                                            *action = "Novo documento (compact)".to_string();
+                                        }
+                                        if menu.item_with("Abrir documento", Some(icons::FILE_TEXT), Some("Ctrl+O")).clicked() {
+                                            *action = "Abrir documento (compact)".to_string();
+                                        }
+                                        menu.separator();
+                                        if menu.danger_item_with("Excluir", Some(icons::TRASH), Some("Del")).clicked() {
+                                            *action = "Excluiu documento (compact)!".to_string();
+                                        }
+                                    })
+                                    .compact()
+                                    .show(ui);
+                            });
+
+                            // Context Menu Target
+                            ui.vertical(|ui| {
+                                field_label(ui, "Menu de contexto", &theme);
+                                let action = &mut self.last_action;
+                                let (card_rect, resp) = ui.allocate_exact_size(egui::vec2(170.0, 38.0), egui::Sense::click_and_drag());
+                                let bg = if resp.hovered() { theme.palette.subtle } else { theme.palette.field_bg };
+                                ui.painter().rect_filled(card_rect, egui::CornerRadius::same(theme.metrics.radius_md as u8), bg);
+                                ui.painter().text(
+                                    card_rect.center(),
+                                    egui::Align2::CENTER_CENTER,
+                                    "Clique direito aqui",
+                                    egui::FontId::new(theme.typography.sm, egui::FontFamily::Name(oxida::fonts::MEDIUM.into())),
+                                    theme.palette.text_secondary,
+                                );
+                                ui.oxida().context_menu(&resp, "ctx_card_menu", |menu| {
+                                    menu.header("AÇÕES DO DOCUMENTO");
+                                    if menu.item_with("Abrir documento", Some(icons::FILE_TEXT), Some("Ctrl+O")).clicked() {
+                                        *action = "Abrir do contexto".to_string();
+                                    }
+                                    if menu.item_with("Renomear", Some(icons::PENCIL_SIMPLE), Some("F2")).clicked() {
+                                        *action = "Renomear do contexto".to_string();
+                                    }
+                                    if menu.item_with("Duplicar", Some(icons::COPY_SIMPLE), Some("Ctrl+D")).clicked() {
+                                        *action = "Duplicar do contexto".to_string();
+                                    }
+                                    if menu.item_with("Copiar", Some(icons::COPY), Some("Ctrl+C")).clicked() {
+                                        *action = "Copiar do contexto".to_string();
+                                    }
+                                    menu.separator();
+                                    menu.submenu_item("Mover para...", Some(icons::FILE_TEXT));
+                                    menu.separator();
+                                    if menu.danger_item_with("Excluir", Some(icons::TRASH), Some("Del")).clicked() {
+                                        *action = "Excluir do contexto!".to_string();
                                     }
                                 });
                             });
@@ -812,6 +878,247 @@ impl App {
                                 .size(theme.typography.sm)
                                 .color(theme.palette.text_secondary),
                         );
+
+                        // Figma Spec Section -----------------------------------------
+                        ui.add_space(20.0);
+                        subhead(ui, "FIGMA SPEC: MENUS PARA CADA AÇÃO (DESKTOP SYSTEM / 05)", &theme);
+                        ui.label(
+                            egui::RichText::new("Itens reutilizáveis, dropdown e menu de contexto. Duas densidades: compacta (30 px) e confortável (38 px).")
+                                .size(theme.typography.sm)
+                                .color(theme.palette.text_secondary),
+                        );
+                        ui.add_space(14.0);
+
+                        // Part A: 20 variantes de item de menu
+                        subhead(ui, "ITEM DE MENU (20 VARIANTES · DUAS DENSIDADES · AÇÕES PADRÃO E DESTRUTIVAS)", &theme);
+
+                        egui::ScrollArea::horizontal().id_salt("menu_item_variants_scroll").show(ui, |ui| {
+                            ui.vertical(|ui| {
+                                ui.horizontal(|ui| {
+                                    ui.add_space(110.0);
+                                    for col_header in ["Padrão", "Hover", "Pressionado", "Foco", "Desabilitado"] {
+                                        ui.allocate_ui_with_layout(
+                                            egui::vec2(165.0, 20.0),
+                                            egui::Layout::left_to_right(egui::Align::Center),
+                                            |ui| {
+                                                ui.label(
+                                                    egui::RichText::new(col_header)
+                                                        .size(theme.typography.xs)
+                                                        .family(egui::FontFamily::Name(oxida::fonts::SEMI_BOLD.into()))
+                                                        .color(theme.palette.text_secondary),
+                                                );
+                                            },
+                                        );
+                                        ui.add_space(12.0);
+                                    }
+                                });
+                                ui.add_space(6.0);
+
+                                let states = [
+                                    MenuItemState::Default,
+                                    MenuItemState::Hover,
+                                    MenuItemState::Pressed,
+                                    MenuItemState::Focus,
+                                    MenuItemState::Disabled,
+                                ];
+
+                                let rows = [
+                                    ("Padrão\n38 px", false, MenuDensity::Comfortable),
+                                    ("Padrão\n30 px", false, MenuDensity::Compact),
+                                    ("Destrutivo\n38 px", true, MenuDensity::Comfortable),
+                                    ("Destrutivo\n30 px", true, MenuDensity::Compact),
+                                ];
+
+                                for (row_label, destructive, density) in rows {
+                                    ui.horizontal(|ui| {
+                                        ui.allocate_ui_with_layout(
+                                            egui::vec2(110.0, density.row_height(&theme.metrics)),
+                                            egui::Layout::left_to_right(egui::Align::Center),
+                                            |ui| {
+                                                ui.label(
+                                                    egui::RichText::new(row_label)
+                                                        .size(theme.typography.xs)
+                                                        .family(egui::FontFamily::Name(oxida::fonts::SEMI_BOLD.into()))
+                                                        .color(theme.palette.text_primary),
+                                                );
+                                            },
+                                        );
+
+                                        for &state in &states {
+                                            let mut item = MenuItem::new("Ação de menu")
+                                                .icon(icons::FILE_TEXT)
+                                                .shortcut("Ctrl+K")
+                                                .density(density)
+                                                .state(state);
+                                            if destructive {
+                                                item = item.danger();
+                                            }
+
+                                            ui.allocate_ui_with_layout(
+                                                egui::vec2(165.0, density.row_height(&theme.metrics)),
+                                                egui::Layout::left_to_right(egui::Align::Center),
+                                                |ui| {
+                                                    let mut menu_ui = DropdownMenuUi::new(ui, &theme, density);
+                                                    menu_ui.add_item(item);
+                                                },
+                                            );
+                                            ui.add_space(12.0);
+                                        }
+                                    });
+                                    ui.add_space(6.0);
+                                }
+                            });
+                        });
+
+                        ui.add_space(20.0);
+
+                        // Part B: 4 Menu Cards (Dropdown e Menu de Contexto)
+                        subhead(ui, "DROPDOWN E MENU DE CONTEXTO (INSTÂNCIAS ANINHADAS)", &theme);
+                        ui.label(
+                            egui::RichText::new("Os dois menus compartilham os mesmos itens, atalhos e divisores. Conteúdo editável por instâncias aninhadas.")
+                                .size(theme.typography.sm)
+                                .color(theme.palette.text_secondary),
+                        );
+                        ui.add_space(12.0);
+
+                        egui::ScrollArea::horizontal().id_salt("menu_cards_scroll").show(ui, |ui| {
+                            ui.horizontal(|ui| {
+                                ui.spacing_mut().item_spacing.x = 24.0;
+
+                                // 1. Dropdown - compacto
+                                ui.vertical(|ui| {
+                                    subhead(ui, "Dropdown · compacto", &theme);
+                                    MenuPanel::new(|menu| {
+                                        menu.set_density(MenuDensity::Compact);
+                                        menu.header("DOCUMENTO");
+                                        menu.item_with("Novo documento", Some(icons::FILE_TEXT), Some("Ctrl+N"));
+                                        menu.item_with("Abrir documento", Some(icons::FILE_TEXT), Some("Ctrl+O"));
+                                        menu.item_with("Duplicar", Some(icons::FILE_TEXT), Some("Ctrl+D"));
+                                        menu.separator();
+                                        menu.submenu_item("Exportar", Some(icons::FILE_TEXT));
+                                        menu.submenu_item("Mover para...", Some(icons::FILE_TEXT));
+                                        menu.separator();
+                                        menu.danger_item_with("Excluir", Some(icons::TRASH), Some("Del"));
+                                    })
+                                    .compact()
+                                    .width(224.0)
+                                    .show(ui);
+                                });
+
+                                // 2. Dropdown - confortável
+                                ui.vertical(|ui| {
+                                    subhead(ui, "Dropdown · confortável", &theme);
+                                    MenuPanel::new(|menu| {
+                                        menu.set_density(MenuDensity::Comfortable);
+                                        menu.header("DOCUMENTO");
+                                        menu.item_with("Novo documento", Some(icons::FILE_TEXT), Some("Ctrl+N"));
+                                        menu.item_with("Abrir documento", Some(icons::FILE_TEXT), Some("Ctrl+O"));
+                                        menu.item_with("Duplicar", Some(icons::FILE_TEXT), Some("Ctrl+D"));
+                                        menu.separator();
+                                        menu.submenu_item("Exportar", Some(icons::FILE_TEXT));
+                                        menu.submenu_item("Mover para...", Some(icons::FILE_TEXT));
+                                        menu.separator();
+                                        menu.danger_item_with("Excluir", Some(icons::TRASH), Some("Del"));
+                                    })
+                                    .comfortable()
+                                    .width(234.0)
+                                    .show(ui);
+                                });
+
+                                // 3. Contexto - compacto
+                                ui.vertical(|ui| {
+                                    subhead(ui, "Contexto · compacto", &theme);
+                                    MenuPanel::new(|menu| {
+                                        menu.set_density(MenuDensity::Compact);
+                                        menu.header("AÇÕES DO DOCUMENTO");
+                                        menu.item_with("Abrir documento", Some(icons::FILE_TEXT), Some("Ctrl+O"));
+                                        menu.item_with("Renomear", Some(icons::PENCIL_SIMPLE), Some("F2"));
+                                        menu.item_with("Duplicar", Some(icons::COPY_SIMPLE), Some("Ctrl+D"));
+                                        menu.item_with("Copiar", Some(icons::COPY), Some("Ctrl+C"));
+                                        menu.separator();
+                                        menu.submenu_item("Mover para...", Some(icons::FILE_TEXT));
+                                        menu.separator();
+                                        menu.danger_item_with("Excluir", Some(icons::TRASH), Some("Del"));
+                                    })
+                                    .compact()
+                                    .width(234.0)
+                                    .show(ui);
+                                });
+
+                                // 4. Contexto - confortável
+                                ui.vertical(|ui| {
+                                    subhead(ui, "Contexto · confortável", &theme);
+                                    MenuPanel::new(|menu| {
+                                        menu.set_density(MenuDensity::Comfortable);
+                                        menu.header("AÇÕES DO DOCUMENTO");
+                                        menu.item_with("Abrir documento", Some(icons::FILE_TEXT), Some("Ctrl+O"));
+                                        menu.item_with("Renomear", Some(icons::PENCIL_SIMPLE), Some("F2"));
+                                        menu.item_with("Duplicar", Some(icons::COPY_SIMPLE), Some("Ctrl+D"));
+                                        menu.item_with("Copiar", Some(icons::COPY), Some("Ctrl+C"));
+                                        menu.separator();
+                                        menu.submenu_item("Mover para...", Some(icons::FILE_TEXT));
+                                        menu.separator();
+                                        menu.danger_item_with("Excluir", Some(icons::TRASH), Some("Del"));
+                                    })
+                                    .comfortable()
+                                    .width(244.0)
+                                    .show(ui);
+                                });
+                            });
+                        });
+
+                        ui.add_space(20.0);
+
+                        // Part C: Ícones e divisor
+                        subhead(ui, "ÍCONES E DIVISOR", &theme);
+                        ui.horizontal(|ui| {
+                            ui.spacing_mut().item_spacing.x = 28.0;
+
+                            let icon_list = [
+                                ("Document", icons::FILE_TEXT),
+                                ("Copy", icons::COPY),
+                                ("Duplicate", icons::COPY_SIMPLE),
+                                ("Rename", icons::PENCIL_SIMPLE),
+                                ("Trash", icons::TRASH),
+                                ("Chevron", icons::CARET_RIGHT),
+                                ("Check", icons::CHECK),
+                            ];
+
+                            for (name, glyph) in icon_list {
+                                ui.vertical(|ui| {
+                                    ui.label(
+                                        egui::RichText::new(name)
+                                            .size(theme.typography.xs)
+                                            .family(egui::FontFamily::Name(oxida::fonts::SEMI_BOLD.into()))
+                                            .color(theme.palette.text_secondary),
+                                    );
+                                    ui.add_space(6.0);
+                                    // Padrão
+                                    ui.label(
+                                        egui::RichText::new(glyph)
+                                            .family(egui::FontFamily::Name(oxida::fonts::PHOSPHOR.into()))
+                                            .size(17.0)
+                                            .color(theme.palette.text_primary),
+                                    );
+                                    ui.add_space(4.0);
+                                    // Destrutivo
+                                    ui.label(
+                                        egui::RichText::new(glyph)
+                                            .family(egui::FontFamily::Name(oxida::fonts::PHOSPHOR.into()))
+                                            .size(17.0)
+                                            .color(theme.palette.danger),
+                                    );
+                                    ui.add_space(4.0);
+                                    // Desabilitado
+                                    ui.label(
+                                        egui::RichText::new(glyph)
+                                            .family(egui::FontFamily::Name(oxida::fonts::PHOSPHOR.into()))
+                                            .size(17.0)
+                                            .color(theme.palette.text_disabled),
+                                    );
+                                });
+                            }
+                        });
 
                         // Divider ----------------------------------------------------
                         Separator::horizontal().spacing(36.0).ui(ui);

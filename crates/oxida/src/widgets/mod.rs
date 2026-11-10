@@ -33,7 +33,10 @@ pub use button::{Button, ButtonVariant};
 pub use card::Card;
 pub use checkbox::{Checkbox, CheckboxState};
 pub use command_palette::{CommandItem, CommandPalette};
-pub use dropdown::{DropdownMenu, DropdownMenuUi};
+pub use dropdown::{
+    ContextMenu, DropdownMenu, DropdownMenuUi, MenuDensity, MenuItem, MenuItemState, MenuItemType,
+    MenuPanel,
+};
 pub use icon_button::IconButton;
 pub use kbd::Kbd;
 pub use progress::{ProgressBar, Spinner};
@@ -163,14 +166,42 @@ impl<'a> Oxida<'a> {
         Select::new(id_salt, selected)
     }
 
-    /// Themed Dropdown Menu styled after shadcn/ui.
+    /// Themed Dropdown Menu styled after shadcn/ui and modern desktop standards.
     pub fn dropdown_menu<R>(
         self,
         id_salt: impl std::hash::Hash + std::fmt::Debug,
         trigger_label: impl Into<WidgetText>,
-        content: impl FnOnce(&mut DropdownMenuUi<'_>) -> R + 'a,
+        content: impl FnOnce(&mut DropdownMenuUi<'_>) -> R,
     ) -> Option<R> {
         DropdownMenu::new(id_salt, trigger_label, content).show(self.ui)
+    }
+
+    /// Builder for custom dropdown menu configuration (e.g. density, width).
+    pub fn dropdown_menu_builder<'c, R>(
+        self,
+        id_salt: impl std::hash::Hash + std::fmt::Debug,
+        trigger_label: impl Into<WidgetText>,
+        content: impl FnOnce(&mut DropdownMenuUi<'_>) -> R + 'c,
+    ) -> DropdownMenu<'c, R> {
+        DropdownMenu::new(id_salt, trigger_label, content)
+    }
+
+    /// Context menu triggered on secondary click (right-click) of a widget response.
+    pub fn context_menu<R>(
+        self,
+        response: &Response,
+        id_salt: impl std::hash::Hash + std::fmt::Debug,
+        content: impl FnOnce(&mut DropdownMenuUi<'_>) -> R,
+    ) -> Option<R> {
+        ContextMenu::new(id_salt, content).show_for_response(self.ui, response)
+    }
+
+    /// Standalone menu panel container.
+    pub fn menu_panel<'c, R>(
+        self,
+        content: impl FnOnce(&mut DropdownMenuUi<'_>) -> R + 'c,
+    ) -> MenuPanel<'c, R> {
+        MenuPanel::new(content)
     }
 
     /// Themed badge / tag chip.

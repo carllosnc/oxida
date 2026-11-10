@@ -12,7 +12,7 @@ crates/
 
 - **Design tokens** — [`Palette`](crates/oxida/src/theme/palette.rs) (semantic colors), [`Typography`](crates/oxida/src/theme/typography.rs) and [`Metrics`](crates/oxida/src/theme/metrics.rs), with built-in `Light` and `Dark` themes
 - **Inter by default** — the [Inter](https://rsms.me/inter/) font (Regular/Medium/SemiBold/Bold, OFL-licensed) is bundled and installed by `oxida::init`; headings render in SemiBold
-- **Widgets** — `Button` (4 variants × 3 sizes), `IconButton`, `TextInput`, `SearchInput`, `Slider`, `Toggle`, `Checkbox`, `Radio`, `Select`, `DropdownMenu`, `Badge`, `Kbd`, `Breadcrumbs`, `CommandPalette`, `Card`, `Alert`, `Tabs`, `Separator`, `ProgressBar`, `Spinner`, `Avatar`
+- **Widgets** — `Button` (4 variants × 3 sizes), `IconButton`, `TextInput`, `SearchInput`, `Slider`, `Toggle`, `Checkbox`, `Radio`, `Select`, `DropdownMenu`, `ContextMenu`, `MenuPanel`, `Badge`, `Kbd`, `Breadcrumbs`, `CommandPalette`, `Card`, `Alert`, `Tabs`, `Separator`, `ProgressBar`, `Spinner`, `Avatar`
 - **Phosphor Icons** — 3,000+ bundled Phosphor icons (`oxida::icons`) across Regular, Bold and Fill weights
 - **Extension trait API** — `ui.oxida().button("Save")`, following the modern egui ecosystem pattern (`egui_extras`, `egui_flex`, ...)
 - **Themes style egui itself too** — panels, menus, `TextEdit`, checkboxes and other built-in widgets match the active theme
@@ -79,6 +79,7 @@ Useful environment variables:
 - [x] **Core Selection Widgets** — `Select` (shadcn style), `DropdownMenu`, `Checkbox`, `Radio`
 - [x] **Display & Feedback Widgets** — `Badge`, `Card` (borderless), `Alert` (styled), `Tabs` (segmented pills), `Separator`, `ProgressBar`, `Spinner`, `Avatar`
 - [x] **Desktop Productivity & Navigation** — `CommandPalette` (`Ctrl + K` / `⌘K`), `Kbd` (shortcut keycaps), `Breadcrumbs` (hierarchical trail), `SearchInput` (search with clear & icon)
+- [x] **Desktop Menus (Desktop System / 05)** — `DropdownMenu`, `ContextMenu` & `MenuPanel` with 20 item variants (Compact 30 px & Comfortable 38 px, Standard & Destructive, shortcuts, icons, submenus, focus rings)
 
 ### Desktop Shell & Layout
 - [ ] **Custom Titlebar** — Frameless window header with minimize, maximize, close controls, drag area, and action slots
@@ -90,7 +91,7 @@ Useful environment variables:
 ### Overlays & Feedback
 - [ ] **`Toast`** — Floating stacked notifications system (with auto-dismiss and action hooks)
 - [ ] **`Dialog` / `Modal`** — Centered modal dialogs with backdrop for confirmations and action flows
-- [ ] **`ContextMenu`** — First-class right-click contextual menu support for arbitrary widgets
+- [x] **`ContextMenu`** — First-class right-click contextual menu support for arbitrary widgets
 
 ### Desktop Forms & Data
 - [ ] **`NumberInput` / `DragValue`** — Stepper with mouse wheel scrubbing and horizontal drag support
@@ -99,7 +100,7 @@ Useful environment variables:
 
 ### Ergonomics & Infrastructure
 - [ ] Full keyboard navigation and accessible focus rings (`focus_ring`) for all widgets
-- [ ] Density modes (Compact vs Comfortable)
+- [x] Density modes (Compact vs Comfortable) for menus and toolbars
 - [ ] Theme serialization (`serde`) and live theme editor
 - [ ] CI visual regression testing (`egui_kittest`)
 
